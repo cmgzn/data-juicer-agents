@@ -373,8 +373,8 @@ class StOperatorPool(OperatorPool):
         if "search_term" not in st.session_state:
             st.session_state.search_term = ""
 
-        recipes_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "/data-juicer-hub"))
-        self.recipe_manager = RecipeManager(recipes_path, all_ops)
+        hub_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "./data-juicer-hub"))
+        self.recipe_manager = RecipeManager(hub_path, all_ops)
 
         self.current_page = st.session_state.current_page
         self.search_example = "e.g., filter|language"
@@ -430,7 +430,7 @@ class StOperatorPool(OperatorPool):
             with btn_col:
                 # Disable button if there are no active operators
                 if st.button(
-                    "Remove All", key="remove_all_ops", disabled=not active_ops_list, use_container_width=True
+                    "Remove All", key="remove_all_ops", disabled=not active_ops_list, width='stretch'
                 ):
                     st.session_state.edited_op_pool_names.clear()
                     st.rerun()
@@ -475,7 +475,7 @@ class StOperatorPool(OperatorPool):
                     "Add All Searched",
                     key="add_all_ops",
                     disabled=not filtered_available_ops,
-                    use_container_width=True,
+                    width='stretch',
                     on_click=self.add_ops_and_clear_callback,
                     args=(filtered_available_ops,),
                 )
@@ -505,7 +505,7 @@ class StOperatorPool(OperatorPool):
         btn_col1, btn_col2 = st.columns(2)
 
         with btn_col1:
-            if st.button("Apply Changes", type="primary", use_container_width=True):
+            if st.button("Apply Changes", type="primary", width='stretch'):
                 original_ops = set(self.pool.keys())
                 edited_ops = st.session_state.edited_op_pool_names
 
@@ -526,7 +526,7 @@ class StOperatorPool(OperatorPool):
                 st.rerun()
 
         with btn_col2:
-            if st.button("Cancel", use_container_width=True):
+            if st.button("Cancel", width='stretch'):
                 self._cleanup_edit_dialog_state()
                 st.rerun()
 
@@ -548,7 +548,7 @@ class StOperatorPool(OperatorPool):
             filtered_recipes = self.recipe_manager.recipes
 
         if not self.recipe_manager.recipes:
-            st.error(f"No recipes found in the directory: {self.recipe_manager.recipes_dir}. Please check the path.")
+            st.error(f"No recipes found in the directory: {self.recipe_manager.hub_dir}. Please check the path.")
             if st.button("Close"):
                 st.rerun()
             return
@@ -591,7 +591,7 @@ class StOperatorPool(OperatorPool):
 
                     st.markdown("---")
                     if st.button(
-                        "Apply this Recipe", key=f"apply_{recipe.path}", type="primary", use_container_width=True
+                        "Apply this Recipe", key=f"apply_{recipe.path}", type="primary", width='stretch'
                     ):
                         logger.info(f"Applying recipe: {recipe.name}")
 
@@ -616,7 +616,7 @@ class StOperatorPool(OperatorPool):
         with st.sidebar:
             st.header(emoji.emojize(":toolbox:Operator Pool"))
             # Export config
-            btn_export_cfg = st.button("Export Config", use_container_width=True)
+            btn_export_cfg = st.button("Export Config", width='stretch')
             if btn_export_cfg:
                 config_path = self.export_config(
                     project_name=st.session_state.project_name,
@@ -628,10 +628,10 @@ class StOperatorPool(OperatorPool):
                 st.write(f"Successfully export config to {config_path}.")
 
             # Button to open the new dialog
-            if st.button("⚙️ Edit Operator Pool", use_container_width=True):
+            if st.button("⚙️ Edit Operator Pool", width='stretch'):
                 self.render_edit_op_pool_dialog()
 
-            if st.button("🍽️ Reuse Example Recipe", use_container_width=True):
+            if st.button("🍽️ Reuse Example Recipe", width='stretch'):
                 self.render_reuse_example_recipe_dialog()
 
             # Show enabled only option

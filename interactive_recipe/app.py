@@ -266,7 +266,7 @@ class Visualize:
                 height=310,
                 value=default_prompt
             )
-            consult_btn = st.button("Consult", use_container_width=True)
+            consult_btn = st.button("Consult", width='stretch')
             if consult_btn:
                 with st.spinner('Wait for LLM assistant to generate suggestions...'):
                     prompt = st.session_state.prompt
@@ -276,7 +276,7 @@ class Visualize:
             if st.session_state.get('suggestions', None) is not None:
                 col1, col2 = st.columns(2)
                 with col1:
-                    apply_btn = st.button("Apply", use_container_width=True)
+                    apply_btn = st.button("Apply", width='stretch')
                     if apply_btn:
                         with st.spinner('Applying suggestions...'):
                             for _, s in st.session_state.suggestions.items():
@@ -292,7 +292,7 @@ class Visualize:
                                     raise ValueError(f"Invalid action {action}")
                             st.session_state.suggestions = None
                 with col2:
-                    ignore_btn = st.button("Ignore", use_container_width=True)
+                    ignore_btn = st.button("Ignore", width='stretch')
                     if ignore_btn:
                         st.session_state.suggestions = None
 
@@ -307,7 +307,7 @@ class Visualize:
                 value=100,
                 key='downsampling_size',
             )
-            analyze_btn = st.button("Analyze", use_container_width=True)
+            analyze_btn = st.button("Analyze", width='stretch')
             if analyze_btn:
                 with st.spinner('Wait for analyze...'):
                     if st.session_state.get('downsampled_data_path', None) is None:
@@ -363,7 +363,7 @@ class Visualize:
                 if display_dataset_details:
                     analyzed_dataset = st.session_state.get(
                         'analyzed_dataset', None)
-                    st.dataframe(analyzed_dataset, use_container_width=True)
+                    st.dataframe(analyzed_dataset, width='stretch')
                     if st.session_state.get('word_cloud_path', None) is not None:
                         st.image(st.session_state.word_cloud_path)
                 display_stats = st.checkbox('Display statistics')
@@ -371,7 +371,7 @@ class Visualize:
                     original_overall = st.session_state.original_overall
                     rows_to_display = ['mean', 'std', 'min', '5%', '10%', '25%', '50%', '75%', '90%', '95%', 'max']
                     displayed_stats = original_overall.loc[original_overall['Unnamed: 0'].isin(rows_to_display)]
-                    st.dataframe(displayed_stats, use_container_width=True)
+                    st.dataframe(displayed_stats, width='stretch')
                 original_imgs = st.session_state.get('original_imgs', [])
                 for img in original_imgs:
                     st.image(img, output_format='png')
@@ -386,8 +386,8 @@ class Visualize:
                          value=f'{example_valid_data_path}')
             display_valid_dataset_details = st.checkbox('Display validation dataset details')
             if display_valid_dataset_details:
-                st.dataframe(load_dataset_as_df(st.session_state.valid_data_path), use_container_width=True)
-            attribution_btn = st.button("Attribute", use_container_width=True)
+                st.dataframe(load_dataset_as_df(st.session_state.valid_data_path), width='stretch')
+            attribution_btn = st.button("Attribute", width='stretch')
             if attribution_btn:
                 with st.spinner('Wait for attribution...'):
                     # TODO: formal attributors
@@ -406,7 +406,7 @@ class Visualize:
                     attribution_result = attributor.run(dataset, valid_dataset, enabled_op_stats_keys)
                     st.session_state.attribution_result = attribution_result
             if st.session_state.get('attribution_result', None) is not None:
-                st.dataframe(pd.DataFrame(st.session_state.attribution_result), use_container_width=True)
+                st.dataframe(pd.DataFrame(st.session_state.attribution_result), width='stretch')
     
     @st.dialog("Data-Juicer Q&A Copilot")
     def copilot_dialog(self):
@@ -414,7 +414,7 @@ class Visualize:
         if "copilot_chat_history" not in st.session_state:
             st.session_state.copilot_chat_history = []
 
-        if st.button("Clear Conversation History", use_container_width=True):
+        if st.button("Clear Conversation History", width='stretch'):
             st.session_state.copilot_chat_history = []
             # st.rerun()
 
@@ -469,7 +469,7 @@ class Visualize:
         Visualize.setup()
         main_cols = st.columns([0.85, 0.15]) 
         with main_cols[1]: 
-            if st.button("🤖 Ask AI", use_container_width=True):
+            if st.button("🤖 Ask AI", width='stretch'):
                 self.copilot_dialog()
 
         col1, col2 = st.columns(2)

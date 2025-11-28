@@ -19,7 +19,6 @@ from agentscope_runtime.engine.services.context_manager import ContextManager
 
 # from file_tracking_agent import FileTrackingReActAgent
 
-
 DATA_JUICER_PATH = os.getenv("DATA_JUICER_PATH", "/app/data-juicer")
 
 

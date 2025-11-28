@@ -22,18 +22,14 @@ export DASHSCOPE_API_KEY=your_dashscope_key
 pip install -r requirements.txt
 ```
 
-启动Q&A机器人服务器（请将 `./qa-copilot/setup_server.sh` 中的 `DATA_JUICER_PATH` 替换为你本地 data-juicer 仓库的绝对路径）：
-
-```bash
-cd qa-copilot
-bash setup_server.sh
-```
-
 通过 Streamlit 启动演示：
 
 ```bash
 streamlit run app.py
 ```
+
+> InteRecipe 主体功能与 Q&A Copilot (Ask AI组件) 相互独立，后者需单独部署但不影响前者运行。
+> 若需启用 Q&A Copilot，请参考 [./qa-copilot/README_ZH.md](./qa-copilot/README_ZH.md)。
 
 #### 算子池使用示例
 
