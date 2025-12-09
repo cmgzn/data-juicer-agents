@@ -2,20 +2,21 @@
 import os
 import copy
 import json
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 
 from op_manager.dj_op_retriever import DJOperatorRetriever
 
 from agentscope_runtime.engine.schemas.agent_schemas import Message
 
 from agentscope.tool import Toolkit
-from agentscope.token import HuggingFaceTokenCounter
 from agentscope.agent import ReActAgent
 from agentscope.mcp import StdIOStatefulClient
 
 
 data_juicer_repo_url = "https://github.com/datajuicer/data-juicer/blob/main/"
 data_juicer_doc_url = "https://datajuicer.github.io/data-juicer/"
+
+DATA_JUICER_PATH = os.getenv("DATA_JUICER_PATH", "/data-juicer")
 
 
 async def file_tracking_pre_print_hook(
@@ -136,13 +137,6 @@ async def file_tracking_pre_print_hook(
     except Exception as e:
         print(f"⚠️ Warning: Error in file tracking hook: {e}")
         return None
-
-
-counter = HuggingFaceTokenCounter(
-    pretrained_model_name_or_path="Qwen/Qwen3-235B-A22B-Instruct-2507"
-)
-
-DATA_JUICER_PATH = os.getenv("DATA_JUICER_PATH", "/app/data-juicer")
 
 
 class MessageWithFeedback(Message):

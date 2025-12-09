@@ -18,7 +18,6 @@ from agent_helper import (
     file_tracking_pre_print_hook,
 )
 from agentscope_runtime.engine.app import AgentApp
-from agentscope_runtime.engine.deployers.local_deployer import LocalDeployManager
 from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
 from agentscope_runtime.adapters.agentscope.long_term_memory import (
     AgentScopeLongTermMemory,
@@ -49,6 +48,12 @@ app = AgentApp(
 long_memory_service = RedisMemoryService()
 session_history_service = RedisSessionHistoryService()
 state_service = InMemoryStateService()
+model = DashScopeChatModel(
+    "qwen-max",
+    api_key=os.getenv("DASHSCOPE_API_KEY"),
+    stream=True,
+)
+formatter = DashScopeChatFormatter()
 
 
 class FeedbackRequest(BaseModel):
@@ -85,10 +90,13 @@ async def init_resources(self):
             )
             print("✅ Successfully cloned data-juicer repository")
 
-            if os.path.exists("./config/.serena"):
+            source_serena_config = os.path.join(
+                os.path.dirname(__file__), "config", ".serena"
+            )
+            if os.path.exists(source_serena_config):
                 try:
                     shutil.copytree(
-                        "./config/.serena", serena_config_path, dirs_exist_ok=True
+                        source_serena_config, serena_config_path, dirs_exist_ok=True
                     )
                     print("✅ Successfully copied .serena configuration to data-juicer")
                 except Exception as e:
@@ -108,7 +116,6 @@ async def init_resources(self):
                 print("✅ Successfully copied .serena configuration to data-juicer")
             except Exception as e:
                 print(f"⚠️ Failed to copy .serena configuration: {e}")
-
 
     if mcp_clients:
         for mcp_client in mcp_clients:
@@ -150,12 +157,8 @@ async def query_func(
 
     agent = ReActAgent(
         name="Juicer",
-        formatter=DashScopeChatFormatter(),
-        model=DashScopeChatModel(
-            "qwen-max",
-            api_key=os.getenv("DASHSCOPE_API_KEY"),
-            stream=True,
-        ),
+        formatter=formatter,
+        model=model,
         sys_prompt=prompts.QA,
         toolkit=_toolkit,
         parallel_tool_calls=True,
@@ -270,25 +273,5 @@ async def handle_feedback(request: FeedbackRequest):
         }
 
 
-async def main():
-    """Deploy the agent application in detached mode."""
-    print("🚀 Starting AgentApp deployment...")
-
-    deploy_manager = LocalDeployManager(
-        host="127.0.0.1",
-        port=8080,
-        startup_timeout=500,
-    )
-
-    deployment_info = await app.deploy(deploy_manager)
-    url = deployment_info["url"]
-    deploy_id = deployment_info["deploy_id"]
-
-    print(f"✅ Deployment successful: {url}")
-    print(f"📍 Deployment ID: {deploy_id}")
-
-
 if __name__ == "__main__":
-    # asyncio.run(main())
-    # input("Press Enter to terminate the server...")
     app.run(host="127.0.0.1", port=8080)

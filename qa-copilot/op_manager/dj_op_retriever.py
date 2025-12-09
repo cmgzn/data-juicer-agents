@@ -8,7 +8,7 @@ from typing import List, Dict
 from agentscope.tool import ToolResponse
 from agentscope.message import TextBlock
 
-from .retrieve_ops import (
+from data_juicer_agents.tools.op_manager.op_retrieval import (
     retrieve_ops_vector,
     init_dj_func_info,
     get_dj_func_info,
@@ -93,7 +93,7 @@ class DJOperatorRetriever:
                     "success": True,
                     "query": query,
                     "found_count": len(operator_summaries),
-                    "operator_names": operator_names,  # 供后续工具使用
+                    "operator_names": operator_names, 
                 },
                 content=[
                     TextBlock(
@@ -280,7 +280,7 @@ class DJOperatorRetriever:
     def _find_similar_operators(
         self, query: str, dj_func_info: List[Dict], limit: int = 5
     ) -> List[str]:
-        """查找相似的算子名称（简单的字符串匹配）"""
+        """Find similar operator names (simple string matching)"""
         query_lower = query.lower()
         similar = []
 

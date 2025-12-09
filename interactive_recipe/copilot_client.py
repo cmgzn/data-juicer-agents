@@ -126,7 +126,6 @@ def clear_copilot_chat_history(session_id: str = None, user_id: str = None):
                 'Content-Type': 'application/json',
             },
             json=request_body,
-            stream=True
         )
     
     if response.status_code != 200:
