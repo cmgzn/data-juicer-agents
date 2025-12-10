@@ -79,4 +79,5 @@ dj-agents --agents dj_mcp dj_dev
 
 # 或使用简写
 dj-agents -a dj_mcp dj_dev
+
 ```
