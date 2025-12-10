@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="zh-CN" data-content_root="../../" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>智能体介绍 &#8212; Data Juicer Agents</title>
+    <title>Quick Start &#8212; Data Juicer Agents</title>
   
   
   
@@ -40,21 +40,20 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=91bfbbb6"></script>
+    <script src="../../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/translations.js?v=beaddf03"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'docs_index/docs/agent_intro_ZH';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'docs_index/docs/QuickStart';</script>
     <script src="../../_static/sidebar.js?v=9ff78125"></script>
     <link rel="icon" href="../../_static/icon.png"/>
-    <link rel="index" title="索引" href="../../genindex.html" />
-    <link rel="search" title="搜索" href="../../search.html" />
-    <link rel="next" title="定制化与扩展" href="extension_ZH.html" />
-    <link rel="prev" title="高级功能" href="advanced_ZH.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Agent Introduction" href="AgentIntro.html" />
+    <link rel="prev" title="DOCS" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="zh-CN"/>
+  <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
   </head>
   
@@ -63,12 +62,12 @@
 
   
   
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">跳转至主要内容</a></div>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>回到顶部</button>
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
   <dialog id="pst-search-dialog">
@@ -91,13 +90,13 @@
   </dialog>
 
   <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="版本警告"></aside>
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
     <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="网页导航">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -110,7 +109,7 @@
     
   
 
-<a class="navbar-brand logo" href="../../index_ZH.html">
+<a class="navbar-brand logo" href="../../index.html">
   
   
   
@@ -140,28 +139,28 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index_ZH.html">
-    文档
+  <a class="nav-link nav-internal" href="../index.html">
+    DOCS
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/en/main/">
     Core
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/en/main/">
     Sandbox
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/en/main/">
     Hub
   </a>
 </li>
@@ -177,7 +176,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
         </div>
@@ -202,8 +201,8 @@
         <div class="navbar-item">
 
 <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="亮色"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="暗色"></i>
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
   <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
 </button></div>
       
@@ -212,19 +211,19 @@
   <div class="navbar-dropdown">
     <div class="navbar-dropdown-trigger">
       <span class="dropdown-label">
-        🌐 zh-CN
+        🌐 en
       </span>
       <i class="fa-solid fa-chevron-down dropdown-icon"></i>
     </div>
     <div class="navbar-dropdown-panel">
       <div class="dropdown-content">
         
-        <a href="../../../../en/main/docs_index/docs/agent_intro.html"
-           class="dropdown-item ">
+        <a href="../../../../en/main/docs_index/docs/QuickStart.html"
+           class="dropdown-item active">
           English
         </a>
         
-        <a href="../../../../zh_CN/main/docs_index/docs/agent_intro_ZH.html"
+        <a href="../../../../zh_CN/main/docs_index/docs/QuickStart_ZH.html"
            class="dropdown-item ">
           简体中文
         </a>
@@ -245,7 +244,7 @@
     <div class="navbar-dropdown-panel">
       <div class="dropdown-content version-list">
         
-        <a href="../../../main/docs_index/docs/agent_intro_ZH.html"
+        <a href="../../../main/docs_index/docs/QuickStart.html"
            class="dropdown-item active">
           main
         </a>
@@ -263,14 +262,14 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="搜索" aria-label="搜索" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
     </div>
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="当前页面">
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -301,28 +300,28 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../index_ZH.html">
-    文档
+  <a class="nav-link nav-internal" href="../index.html">
+    DOCS
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/en/main/">
     Core
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/en/main/">
     Sandbox
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/zh_CN/main/">
+  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/en/main/">
     Hub
   </a>
 </li>
@@ -356,8 +355,8 @@
           <div class="navbar-item">
 
 <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="亮色"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="暗色"></i>
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
   <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
 </button></div>
         
@@ -366,19 +365,19 @@
   <div class="navbar-dropdown">
     <div class="navbar-dropdown-trigger">
       <span class="dropdown-label">
-        🌐 zh-CN
+        🌐 en
       </span>
       <i class="fa-solid fa-chevron-down dropdown-icon"></i>
     </div>
     <div class="navbar-dropdown-panel">
       <div class="dropdown-content">
         
-        <a href="../../../../en/main/docs_index/docs/agent_intro.html"
-           class="dropdown-item ">
+        <a href="../../../../en/main/docs_index/docs/QuickStart.html"
+           class="dropdown-item active">
           English
         </a>
         
-        <a href="../../../../zh_CN/main/docs_index/docs/agent_intro_ZH.html"
+        <a href="../../../../zh_CN/main/docs_index/docs/QuickStart_ZH.html"
            class="dropdown-item ">
           简体中文
         </a>
@@ -399,7 +398,7 @@
     <div class="navbar-dropdown-panel">
       <div class="dropdown-content version-list">
         
-        <a href="../../../main/docs_index/docs/agent_intro_ZH.html"
+        <a href="../../../main/docs_index/docs/QuickStart.html"
            class="dropdown-item active">
           main
         </a>
@@ -417,13 +416,13 @@
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
-     aria-label="章节导航">
-  <p class="bd-links__title" role="heading" aria-level="1">章节导航</p>
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="advanced_ZH.html">高级功能</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">智能体介绍</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extension_ZH.html">定制化与扩展</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start_ZH.html">快速开始</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AgentIntro.html">Agent Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced.html">Advanced Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Extension.html">Customization and Extension</a></li>
 </ul>
 </div>
 </nav></div>
@@ -460,14 +459,14 @@
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
-      <a href="../../index_ZH.html" class="nav-link" aria-label="初始页面">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../index_ZH.html" class="nav-link">文档</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">DOCS</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">智能体介绍</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Quick Start</span></li>
   </ul>
 </nav>
 </div>
@@ -484,73 +483,86 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="id1">
-<h1>智能体介绍<a class="headerlink" href="#id1" title="Link to this heading">#</a></h1>
-<section id="id2">
-<h2>数据处理智能体<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
-<p>负责与 Data-Juicer 交互，执行实际的数据处理任务。支持从自然语言描述自动推荐算子、生成配置并执行。</p>
-<p><strong>工作流程：</strong></p>
-<p>当用户说：&quot;我的数据保存在 xxx，请清理其中文本长度小于5、图片大小小于10MB的条目&quot;，Agent 并不会盲目执行，而是按步骤推进：</p>
-<ol class="arabic simple">
-<li><p><strong>数据预览</strong>：预览前 5–10 个数据样本，确认字段名和数据格式——这是避免配置错误的关键一步</p></li>
-<li><p><strong>获取签名</strong>：调用 <code class="docutils literal notranslate"><span class="pre">get_ops_signature</span></code> 工具，获取算子参数签名及简单描述</p></li>
-<li><p><strong>参数决策</strong>：LLM 自主决定全局参数（如 dataset_path、export_path）和算子具体配置</p></li>
-<li><p><strong>配置生成</strong>：生成标准的 YAML 配置文件</p></li>
-<li><p><strong>执行处理</strong>：调用 <code class="docutils literal notranslate"><span class="pre">dj-process</span></code> 命令执行实际处理</p></li>
-</ol>
-<p>整个过程既自动化，又具备可解释性。用户可以在任何环节介入干预，确保结果符合预期。</p>
-<p><strong>典型用途：</strong></p>
+  <section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h1>
+<section id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong>数据清洗</strong>：去重、移除低质量样本、格式标准化</p></li>
-<li><p><strong>多模态处理</strong>：同时处理文本、图像、视频数据</p></li>
-<li><p><strong>批量转换</strong>：格式转换、数据增强、特征提取</p></li>
+<li><p>Python 3.10+</p></li>
+<li><p>Valid DashScope API key</p></li>
+<li><p>Optional: Data-Juicer source code (for custom operator development)</p></li>
 </ul>
-<details>
-<summary>查看完整示例日志（from AgentScope Studio）</summary>
-<img src="imgs/dj_agent_image.png" width="100%">
-</details>
-<p><strong>示例执行流程：</strong></p>
-<p>用户输入：&quot;The data in ./data/demo-dataset-images.jsonl, remove samples with text field length less than 5 and image size less than 100Kb...&quot;</p>
-<p>路由：调用 <code class="docutils literal notranslate"><span class="pre">query_dj_operators</span></code>，精准返回两个算子 <code class="docutils literal notranslate"><span class="pre">text_length_filter</span></code> 和 <code class="docutils literal notranslate"><span class="pre">image_size_filter</span></code></p>
-<p>数据处理 Agent 执行步骤：</p>
-<ol class="arabic simple">
-<li><p>调用 <code class="docutils literal notranslate"><span class="pre">get_ops_signature</span></code>，获取 <code class="docutils literal notranslate"><span class="pre">text_length_filter</span></code> 和 <code class="docutils literal notranslate"><span class="pre">image_size_filter</span></code> 的参数签名</p></li>
-<li><p>用 <code class="docutils literal notranslate"><span class="pre">view_text_file</span></code> 工具预览原始数据，确认字段确实是 'text' 和 'image'</p></li>
-<li><p>生成 YAML 配置，并通过 <code class="docutils literal notranslate"><span class="pre">write_text_file</span></code> 保存到临时路径</p></li>
-<li><p>调用 <code class="docutils literal notranslate"><span class="pre">execute_safe_command</span></code> 执行 <code class="docutils literal notranslate"><span class="pre">dj-process</span></code>，返回结果路径</p></li>
-</ol>
-<p>整个过程没有人工干预，但每一步都可追溯、可验证。<strong>这正是我们追求的&quot;自动化但不失控&quot;的数据处理体验</strong>。</p>
 </section>
-<section id="id3">
-<h2>代码开发智能体<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
-<p>当内置算子无法满足需求时，传统做法是：查文档、抄代码、调参数、写测试——整个过程可能耗时数小时。</p>
-<p>Operator Development Agent 的目标，是将这个过程压缩到几分钟，并保证代码质量。默认使用 <code class="docutils literal notranslate"><span class="pre">qwen3-coder-480b-a35b-instruct</span></code> 模型驱动。</p>
-<p><strong>工作流程：</strong></p>
-<p>当用户提出：&quot;帮我创建一个将单词倒序排列的算子，并生成单元测试文件&quot;，Router 会将其路由至 DJ Dev Agent。</p>
-<p>该 Agent 的执行流程分为四步：</p>
-<ol class="arabic simple">
-<li><p><strong>获取参考算子</strong>：查找功能相似的现有算子作为参考</p></li>
-<li><p><strong>获取模板</strong>：拉取基类文件和典型示例，确保代码风格一致</p></li>
-<li><p><strong>生成代码</strong>：基于用户提供的函数原型，生成符合 DataJuicer 规范的算子类</p></li>
-<li><p><strong>本地集成</strong>：将新算子注册到用户指定的本地代码库路径</p></li>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install uv (if not already)</span>
+curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+
+<span class="c1"># Installation using uv</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Note for Custom Operator Development</strong>:</p>
+<p>For a better custom operator development experience, you should also download and install Data-Juicer from source:</p>
+<ol class="arabic">
+<li><p>Clone the repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/datajuicer/data-juicer.git
+</pre></div>
+</div>
+</li>
+<li><p>Install it in editable mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>/path/to/data-juicer
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>/path/to/data-juicer
+</pre></div>
+</div>
+</li>
 </ol>
-<p>整个过程将模糊需求转化为可运行、可测试、可复用的模块。</p>
-<p><strong>生成内容：</strong></p>
+<p>Editable mode installation is essential to ensure the agent can access real-time operator updates.</p>
+</div></blockquote>
+<ol class="arabic simple">
+<li><p><strong>Set API Key</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DASHSCOPE_API_KEY</span><span class="o">=</span><span class="s2">&quot;your-dashscope-key&quot;</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Optional: Configure Data-Juicer Path (for custom operator development)</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DATA_JUICER_PATH</span><span class="o">=</span><span class="s2">&quot;your-data-juicer-path&quot;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Tip</strong>: You can also set this during runtime through conversation, for example:</p>
 <ul class="simple">
-<li><p><strong>实现算子</strong>：创建算子类文件，继承 Mapper/Filter 基类，使用 <code class="docutils literal notranslate"><span class="pre">&#64;OPERATORS.register_module</span></code> 装饰器注册</p></li>
-<li><p><strong>更新注册</strong>：修改 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>，将新类加入 <code class="docutils literal notranslate"><span class="pre">__all__</span></code> 列表</p></li>
-<li><p><strong>编写测试</strong>：生成覆盖多种场景的单元测试，包括边缘 case，确保鲁棒性</p></li>
+<li><p>“Help me set the DataJuicer path: /path/to/data-juicer”</p></li>
+<li><p>“Help me update the DataJuicer path: /path/to/data-juicer”</p></li>
 </ul>
-<p><strong>典型用途：</strong></p>
-<ul class="simple">
-<li><p><strong>开发领域特定的过滤或转换算子</strong></p></li>
-<li><p><strong>集成自有的数据处理逻辑</strong></p></li>
-<li><p><strong>为特定场景扩展 Data-Juicer 能力</strong></p></li>
-</ul>
-<details>
-<summary>查看完整示例日志（from AgentScope Studio）</summary>
-<img src="imgs/dj_dev_agent_image.png" width="100%">
-</details></section>
+</div></blockquote>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h2>
+<p>Choose the running mode using the <code class="docutils literal notranslate"><span class="pre">-u</span></code> or <code class="docutils literal notranslate"><span class="pre">--use-studio</span></code> parameter:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use AgentScope Studio&#39;s interactive interface (please install and start AgentScope Studio first)</span>
+dj-agents<span class="w"> </span>--use-studio
+
+<span class="c1"># Or use command line mode directly (default)</span>
+dj-agents
+</pre></div>
+</div>
+<p>Note:</p>
+<p>Install AgentScope Studio via npm:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>@agentscope/studio
+</pre></div>
+</div>
+<p>Start Studio with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>as_studio
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -564,20 +576,20 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="advanced_ZH.html"
-       title="上一页">
+       href="../index.html"
+       title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
-        <p class="prev-next-subtitle">上一页</p>
-        <p class="prev-next-title">高级功能</p>
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">DOCS</p>
       </div>
     </a>
     <a class="right-next"
-       href="extension_ZH.html"
-       title="下一页">
+       href="AgentIntro.html"
+       title="next page">
       <div class="prev-next-info">
-        <p class="prev-next-subtitle">下一页</p>
-        <p class="prev-next-title">定制化与扩展</p>
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Agent Introduction</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -596,21 +608,22 @@
 <div
     id="pst-page-navigation-heading-2"
     class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> 当前页面
+    <i class="fa-solid fa-list"></i> On this page
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">数据处理智能体</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">代码开发智能体</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-requirements">System Requirements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
 </ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
   <div role="note" aria-label="source link">
-    <h3>本页</h3>
+    <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../../_sources/docs_index/docs/agent_intro_ZH.md.txt"
-            rel="nofollow">显示源代码</a></li>
+      <li><a href="../../_sources/docs_index/docs/QuickStart.md.txt"
+            rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
 
@@ -654,7 +667,7 @@
         <div class="footer-item">
 
   <p class="sphinx-version">
-    由 <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3创建。
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
     <br/>
   </p>
 </div>
@@ -662,7 +675,7 @@
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  使用 <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1构建.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
 </p></div>
       
     </div>
