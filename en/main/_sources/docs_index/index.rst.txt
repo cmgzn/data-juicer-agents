@@ -1,0 +1,7 @@
+DOCS
+====
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/*
