@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=b26f9bd0" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=34d13042" />
   
   <!-- So that users can add custom icons -->
   <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -46,7 +46,8 @@
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'docs_index';</script>
-    <script src="_static/sidebar.js?v=9ff78125"></script>
+    <script src="_static/sidebar.js?v=3fc1065c"></script>
+    <script src="_static/switcher-mobile.js?v=07875724"></script>
     <link rel="icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -215,23 +216,30 @@
       
         <div class="navbar-item"><div class="navbar-switcher-container">
   
-  <div class="navbar-dropdown">
-    <div class="navbar-dropdown-trigger">
-      <span class="dropdown-label">
-        🌐 en
-      </span>
-      <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-    </div>
-    <div class="navbar-dropdown-panel">
+  <div class="navbar-dropdown language-dropdown">
+    <button type="button" 
+            class="navbar-dropdown-trigger" 
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Select language: en">
+      <span class="switcher-icon" aria-hidden="true">🌐</span>
+      <span class="switcher-text">en</span>
+      <i class="fa-solid fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+    </button>
+    <div class="navbar-dropdown-panel" role="menu">
       <div class="dropdown-content">
         
         <a href="./../../en/main/docs_index.html"
-           class="dropdown-item active">
+           class="dropdown-item active"
+           role="menuitem"
+           aria-current="true">
           English
         </a>
         
         <a href="./../../zh_CN/main/docs_index_ZH.html"
-           class="dropdown-item ">
+           class="dropdown-item "
+           role="menuitem"
+           >
           简体中文
         </a>
         
@@ -241,18 +249,23 @@
   
 
   
-  <div class="navbar-dropdown">
-    <div class="navbar-dropdown-trigger">
-      <span class="dropdown-label">
-        📦 main
-      </span>
-      <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-    </div>
-    <div class="navbar-dropdown-panel">
-      <div class="dropdown-content version-list">
+  <div class="navbar-dropdown version-dropdown">
+    <button type="button" 
+            class="navbar-dropdown-trigger" 
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Select version: main">
+      <span class="switcher-icon" aria-hidden="true">📦</span>
+      <span class="switcher-text">main</span>
+      <i class="fa-solid fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+    </button>
+    <div class="navbar-dropdown-panel" role="menu">
+      <div class="dropdown-content">
         
         <a href="./../main/docs_index.html"
-           class="dropdown-item active">
+           class="dropdown-item active"
+           role="menuitem"
+           aria-current="true">
           main
         </a>
         
@@ -376,23 +389,30 @@
         
           <div class="navbar-item"><div class="navbar-switcher-container">
   
-  <div class="navbar-dropdown">
-    <div class="navbar-dropdown-trigger">
-      <span class="dropdown-label">
-        🌐 en
-      </span>
-      <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-    </div>
-    <div class="navbar-dropdown-panel">
+  <div class="navbar-dropdown language-dropdown">
+    <button type="button" 
+            class="navbar-dropdown-trigger" 
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Select language: en">
+      <span class="switcher-icon" aria-hidden="true">🌐</span>
+      <span class="switcher-text">en</span>
+      <i class="fa-solid fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+    </button>
+    <div class="navbar-dropdown-panel" role="menu">
       <div class="dropdown-content">
         
         <a href="./../../en/main/docs_index.html"
-           class="dropdown-item active">
+           class="dropdown-item active"
+           role="menuitem"
+           aria-current="true">
           English
         </a>
         
         <a href="./../../zh_CN/main/docs_index_ZH.html"
-           class="dropdown-item ">
+           class="dropdown-item "
+           role="menuitem"
+           >
           简体中文
         </a>
         
@@ -402,18 +422,23 @@
   
 
   
-  <div class="navbar-dropdown">
-    <div class="navbar-dropdown-trigger">
-      <span class="dropdown-label">
-        📦 main
-      </span>
-      <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-    </div>
-    <div class="navbar-dropdown-panel">
-      <div class="dropdown-content version-list">
+  <div class="navbar-dropdown version-dropdown">
+    <button type="button" 
+            class="navbar-dropdown-trigger" 
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Select version: main">
+      <span class="switcher-icon" aria-hidden="true">📦</span>
+      <span class="switcher-text">main</span>
+      <i class="fa-solid fa-chevron-down dropdown-icon" aria-hidden="true"></i>
+    </button>
+    <div class="navbar-dropdown-panel" role="menu">
+      <div class="dropdown-content">
         
         <a href="./../main/docs_index.html"
-           class="dropdown-item active">
+           class="dropdown-item active"
+           role="menuitem"
+           aria-current="true">
           main
         </a>
         
@@ -440,8 +465,8 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Other</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="qa-copilot/README.html">Q&amp;A Copilot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interactive_recipe/README.html">🔧 InteRecipe: Interactive Recipe Generation Workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html">Q&amp;A Copilot</a></li>
 </ul>
 </div>
 </nav></div>
@@ -530,22 +555,22 @@
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Other</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="qa-copilot/README.html">Q&amp;A Copilot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#core-components">Core Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#configuration-details">Configuration Details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qa-copilot/README.html#related-links">Related Links</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="interactive_recipe/README.html">🔧 InteRecipe: Interactive Recipe Generation Workflow</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="interactive_recipe/README.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interactive_recipe/README.html#usage">Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interactive_recipe/README.html#core-feature-operator-pool">✨ Core Feature: Operator Pool</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interactive_recipe/README.html#modules">Modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interactive_recipe/README.html#roadmaps">Roadmaps</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html">Q&amp;A Copilot</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#core-components">Core Components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#quick-start">Quick Start</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#usage">Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#configuration-details">Configuration Details</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#license">License</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interactive_recipe/qa-copilot/README.html#related-links">Related Links</a></li>
 </ul>
 </li>
 </ul>
