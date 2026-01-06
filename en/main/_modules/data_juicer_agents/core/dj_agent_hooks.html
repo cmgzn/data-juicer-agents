@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=34d13042" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/ask-ai-widget.css?v=1d403f1f" />
   
   <!-- So that users can add custom icons -->
   <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -39,6 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
+    <script>window.JUICER_API_URL = 'https://datajuicer.online:443';</script>
     <script src="../../../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
@@ -46,7 +48,9 @@
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/data_juicer_agents/core/dj_agent_hooks';</script>
     <script src="../../../_static/sidebar.js?v=3fc1065c"></script>
+    <script src="../../../_static/ask-ai-widget.js?v=4498011a"></script>
     <script src="../../../_static/switcher-mobile.js?v=07875724"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="icon" href="../../../_static/icon.png"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -151,21 +155,21 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer/en/main/">
     Core
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer-sandbox/en/main/">
     Sandbox
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer-hub/en/main/">
     Hub
   </a>
 </li>
@@ -226,19 +230,23 @@
     <div class="navbar-dropdown-panel" role="menu">
       <div class="dropdown-content">
         
-        <a href="../../../../../en/main/_modules/data_juicer_agents/core/dj_agent_hooks.html"
-           class="dropdown-item active"
-           role="menuitem"
-           aria-current="true">
-          English
-        </a>
+          
+          
+          <a href="../../../../../en/main/_modules/data_juicer_agents/core/dj_agent_hooks.html"
+             class="dropdown-item active"
+             role="menuitem"
+             aria-current="true">
+            English
+          </a>
         
-        <a href="../../../../../zh_CN/main/_modules/data_juicer_agents/core/dj_agent_hooks_ZH.html"
-           class="dropdown-item "
-           role="menuitem"
-           >
-          简体中文
-        </a>
+          
+          
+          <a href="../../../../../zh_CN/main/_modules/data_juicer_agents/core/dj_agent_hooks_ZH.html"
+             class="dropdown-item "
+             role="menuitem"
+             >
+            简体中文
+          </a>
         
       </div>
     </div>
@@ -329,21 +337,21 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer/en/main/">
     Core
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-sandbox/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer-sandbox/en/main/">
     Sandbox
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-external" href="https://datajuicer.github.io/data-juicer-hub/en/main/">
+  <a class="nav-link nav-external" href="https://cmgzn.github.io/data-juicer-hub/en/main/">
     Hub
   </a>
 </li>
@@ -397,19 +405,23 @@
     <div class="navbar-dropdown-panel" role="menu">
       <div class="dropdown-content">
         
-        <a href="../../../../../en/main/_modules/data_juicer_agents/core/dj_agent_hooks.html"
-           class="dropdown-item active"
-           role="menuitem"
-           aria-current="true">
-          English
-        </a>
+          
+          
+          <a href="../../../../../en/main/_modules/data_juicer_agents/core/dj_agent_hooks.html"
+             class="dropdown-item active"
+             role="menuitem"
+             aria-current="true">
+            English
+          </a>
         
-        <a href="../../../../../zh_CN/main/_modules/data_juicer_agents/core/dj_agent_hooks_ZH.html"
-           class="dropdown-item "
-           role="menuitem"
-           >
-          简体中文
-        </a>
+          
+          
+          <a href="../../../../../zh_CN/main/_modules/data_juicer_agents/core/dj_agent_hooks_ZH.html"
+             class="dropdown-item "
+             role="menuitem"
+             >
+            简体中文
+          </a>
         
       </div>
     </div>
@@ -513,7 +525,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <div class="viewcode-block" id="clean_log">
-<a class="viewcode-back" href="../../../api/data_juicer_agents.core.dj_agent_hooks.html#data_juicer_agents.core.dj_agent_hooks.clean_log">[docs]</a>
+<a class="viewcode-back" href="../../../api/data_juicer_agents.core.dj_agent_hooks.html#data_juicer_agents.clean_log">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">clean_log</span><span class="p">(</span><span class="n">log_content</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Clean log content:</span>
@@ -603,7 +615,7 @@
 
 
 <div class="viewcode-block" id="dj_agent_post_acting_clean_content">
-<a class="viewcode-back" href="../../../api/data_juicer_agents.core.dj_agent_hooks.html#data_juicer_agents.core.dj_agent_hooks.dj_agent_post_acting_clean_content">[docs]</a>
+<a class="viewcode-back" href="../../../api/data_juicer_agents.core.dj_agent_hooks.html#data_juicer_agents.dj_agent_post_acting_clean_content">[docs]</a>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">dj_agent_post_acting_clean_content</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;ReActAgent&quot;</span><span class="p">,</span>  <span class="c1"># pylint: disable=W0613</span>
     <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -657,7 +669,7 @@
 
 
 <div class="viewcode-block" id="register_dj_agent_hooks">
-<a class="viewcode-back" href="../../../api/data_juicer_agents.core.dj_agent_hooks.html#data_juicer_agents.core.dj_agent_hooks.register_dj_agent_hooks">[docs]</a>
+<a class="viewcode-back" href="../../../api/data_juicer_agents.core.html#data_juicer_agents.register_dj_agent_hooks">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">register_dj_agent_hooks</span><span class="p">(</span><span class="n">agent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Register cleaning hooks for DataJuicer agent.</span>
