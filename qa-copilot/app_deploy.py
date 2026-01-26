@@ -3,6 +3,7 @@ import prompts
 from typing import Optional
 
 import os
+import json
 import importlib.util
 import time
 import asyncio
@@ -75,8 +76,29 @@ async def cleanup_session_lock(session_id: str) -> None:
 
 # ========== End Session Lock Manager ==========
 
+# ========= FastAPI Config via JSON =========
+# Allow configuring FastAPI config file.
+FASTAPI_CONFIG_PATH = os.getenv("FASTAPI_CONFIG_PATH", "")
+
+fastapi_kwargs = {}
+try:
+    if FASTAPI_CONFIG_PATH and os.path.exists(FASTAPI_CONFIG_PATH):
+        with open(FASTAPI_CONFIG_PATH, "r", encoding="utf-8") as f:
+            fastapi_kwargs = json.load(f) or {}
+        print(f"✅ Loaded FastAPI config from {FASTAPI_CONFIG_PATH}: {fastapi_kwargs}")
+    elif FASTAPI_CONFIG_PATH:
+        print(f"ℹ️  Config file not found at {FASTAPI_CONFIG_PATH}, using defaults.")
+    else:
+        print("ℹ️  FASTAPI_CONFIG_PATH not set, using defaults.")
+except (json.JSONDecodeError, IOError) as e:
+    print(f"⚠️  Failed to load or parse FastAPI config from {FASTAPI_CONFIG_PATH}: {e}")
+    fastapi_kwargs = {}
+
+
+
 app = AgentApp(
     agent_name="Juicer",
+    **fastapi_kwargs,
 )
 
 # Initialize services conditionally based on database configuration
