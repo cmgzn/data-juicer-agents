@@ -14,15 +14,6 @@ class TestOpRetrieval(unittest.TestCase):
                 "DASHSCOPE_API_KEY not set. Please set it to run these tests."
             )
 
-    def _run_async(self, coro):
-        """Helper to run async functions."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
-
     def test_init_dj_func_info(self):
         """Test that dj_func_info can be initialized."""
         from data_juicer_agents.tools.op_manager.op_retrieval import (
@@ -42,30 +33,23 @@ class TestOpRetrieval(unittest.TestCase):
             self.assertIn("class_desc", op)
             self.assertIn("arguments", op)
 
-    def test_retrieve_text_filter_operators_with_llm(self):
-        """Test retrieving text filtering operators using LLM."""
+    async def test_retrieve_text_filter_operators(self):
+        """Test retrieving text filtering operators using different modes."""
         from data_juicer_agents.tools.op_manager.op_retrieval import retrieve_ops
 
-        async def run():
-            results = await retrieve_ops("filter text by length", limit=5, mode="llm")
-            # Results could be a list
-            self.assertIsInstance(results, list)
-            first_result = results[0]
-            self.assertEqual("text_length_filter", first_result)
-
-        self._run_async(run())
-    
-    def test_retrieve_text_filter_operators_with_vector(self):
-        """Test retrieving text filtering operators using vector."""
-        from data_juicer_agents.tools.op_manager.op_retrieval import retrieve_ops
-        async def run():
-            results = await retrieve_ops("filter text by length", limit=5, mode="vector")
-            # Results could be a list
-            self.assertIsInstance(results, list)
-            first_result = results[0]
-            self.assertEqual("text_length_filter", first_result)
-        
-        self._run_async(run())
+        for mode in ["llm", "vector"]:
+            with self.subTest(mode=mode):
+                results = await retrieve_ops(
+                    "filter text by length", limit=5, mode=mode
+                )
+                self.assertIsInstance(results, list)
+                self.assertGreater(
+                    len(results),
+                    0,
+                    f"Expected results for mode '{mode}', but got none.",
+                )
+                first_result = results[0]
+                self.assertEqual("text_length_filter", first_result)
 
     def test_get_content_hash_consistency(self):
         """Test _get_content_hash produces consistent hashes."""

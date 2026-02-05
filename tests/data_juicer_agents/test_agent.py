@@ -19,8 +19,6 @@ class TestAgent(unittest.TestCase):
         # Create a temporary directory for test outputs
         cls.test_dir = tempfile.mkdtemp(prefix="dj_agent_test_")
         cls.test_data_path = os.path.join(cls.test_dir, "test_input.jsonl")
-        cls.test_output_path = os.path.join(cls.test_dir, "test_output.jsonl")
-        cls.test_config_path = os.path.join(cls.test_dir, "test_config.yaml")
 
         # Create test input data
         test_samples = [
@@ -39,15 +37,6 @@ class TestAgent(unittest.TestCase):
         """Clean up temporary directory."""
         if hasattr(cls, "test_dir") and os.path.exists(cls.test_dir):
             shutil.rmtree(cls.test_dir)
-
-    def _run_async(self, coro):
-        """Helper to run async functions."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
 
     def _get_text_from_result(self, result):
         """Extract text from ToolResponse."""
@@ -88,41 +77,33 @@ class TestAgent(unittest.TestCase):
 
     # ==================== Tool Function Tests ====================
 
-    def test_get_ops_signature(self):
+    async def test_get_ops_signature(self):
         """Test getting operator signatures."""
         from data_juicer_agents.tools.dj_helpers import get_ops_signature
 
-        async def run():
-            result = await get_ops_signature(["text_length_filter"])
-            self.assertIsNotNone(result)
-            text = self._get_text_from_result(result)
-            self.assertIn("text_length_filter", text.lower())
+        result = await get_ops_signature(["text_length_filter"])
+        self.assertIsNotNone(result)
+        text = self._get_text_from_result(result)
+        self.assertIn("text_length_filter", text.lower())
 
-        self._run_async(run())
-
-    def test_execute_safe_command_allowed(self):
+    async def test_execute_safe_command_allowed(self):
         """Test that allowed commands can be executed."""
         from data_juicer_agents.tools.dj_helpers import execute_safe_command
 
-        async def run():
-            result = await execute_safe_command("echo hello")
-            text = self._get_text_from_result(result)
-            self.assertIn("<returncode>0</returncode>", text)
-            self.assertIn("hello", text)
+        result = await execute_safe_command("echo hello")
+        text = self._get_text_from_result(result)
+        self.assertIn("<returncode>0</returncode>", text)
+        self.assertIn("hello", text)
 
-        self._run_async(run())
-
-    def test_execute_safe_command_blocked(self):
+    async def test_execute_safe_command_blocked(self):
         """Test that dangerous commands are blocked."""
         from data_juicer_agents.tools.dj_helpers import execute_safe_command
 
-        async def run():
-            result = await execute_safe_command("curl http://example.com")
-            text = self._get_text_from_result(result)
-            self.assertIn("<returncode>-1</returncode>", text)
-            self.assertIn("not allowed", text)
+        result = await execute_safe_command("curl http://example.com")
+        text = self._get_text_from_result(result)
+        self.assertIn("<returncode>-1</returncode>", text)
+        self.assertIn("not allowed", text)
 
-        self._run_async(run())
 
 if __name__ == "__main__":
     unittest.main()
