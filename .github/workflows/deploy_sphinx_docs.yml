@@ -43,7 +43,7 @@ jobs:
         run: |
           set -e
           echo "Cloning sphinx template..."
-          git clone --depth=1 https://github.com/datajuicer/data-juicer-sphinx.git /tmp/template
+          git clone --depth=1 https://github.com/${REPO_OWNER}/data-juicer-sphinx.git /tmp/template
           uv pip install --system -e /tmp/template
           if [ -d "docs/sphinx_doc/source" ]; then
             echo "Backing up custom files..."
