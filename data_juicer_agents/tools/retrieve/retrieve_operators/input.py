@@ -16,6 +16,14 @@ class RetrieveOperatorsInput(BaseModel):
         description="Retrieval mode: auto, llm, vector, or bm25.",
     )
     dataset_path: str = Field(default="", description="Optional dataset path used as explicit retrieval context.")
+    op_type: str = Field(
+        default="",
+        description=(
+            "Optional operator type filter (e.g. 'filter', 'mapper', 'deduplicator', "
+            "'selector', 'grouper', 'aggregator', 'pipeline'). When provided, only operators of "
+            "the specified type are considered during retrieval."
+        ),
+    )
 
 
 class GenericOutput(BaseModel):
