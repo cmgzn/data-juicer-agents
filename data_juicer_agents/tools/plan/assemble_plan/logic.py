@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List
+from collections.abc import Iterable
+from typing import Any, Dict, List
 
-from .._shared.schema import DatasetSpec, OperatorStep, PlanContext, PlanModel
-from .._shared.dataset_spec import infer_modality
+from .._shared.dataset_spec import infer_modality, normalize_dataset_spec
+from .._shared.normalize import normalize_params, normalize_string_list
 from .._shared.process_spec import normalize_process_spec
+from .._shared.schema import DatasetSpec, PlanContext, PlanModel, ProcessSpec, SystemSpec
 from .._shared.system_spec import normalize_system_spec
 
 
@@ -17,27 +19,6 @@ class PlannerBuildError(ValueError):
 
 class PlannerCore:
     """Pure deterministic planner builder."""
-
-    @staticmethod
-    def _normalize_string_list(values: Iterable[Any] | None) -> List[str]:
-        normalized: List[str] = []
-        seen = set()
-        for item in values or []:
-            text = str(item or "").strip()
-            if not text or text in seen:
-                continue
-            normalized.append(text)
-            seen.add(text)
-        return normalized
-
-    @staticmethod
-    def _normalize_params(value: Any) -> Dict[str, Any]:
-        return dict(value) if isinstance(value, dict) else {}
-
-    @staticmethod
-    def _normalize_optional_text(value: Any) -> str | None:
-        text = str(value or "").strip()
-        return text or None
 
     @classmethod
     def normalize_context(
@@ -52,7 +33,7 @@ class PlannerCore:
             user_intent=str(user_intent or "").strip(),
             dataset_path=str(dataset_path or "").strip(),
             export_path=str(export_path or "").strip(),
-            custom_operator_paths=cls._normalize_string_list(custom_operator_paths),
+            custom_operator_paths=normalize_string_list(custom_operator_paths),
         )
         missing = [
             name
@@ -68,37 +49,50 @@ class PlannerCore:
         return context
 
     @classmethod
-    def normalize_dataset_spec(cls, dataset_spec: DatasetSpec | Dict[str, Any]) -> DatasetSpec:
-        if isinstance(dataset_spec, DatasetSpec):
-            source = dataset_spec
-        elif isinstance(dataset_spec, dict):
-            source = DatasetSpec.from_dict(dataset_spec)
-        else:
-            raise PlannerBuildError("dataset_spec must be a dict object")
+    def _build_recipe(
+        cls,
+        normalized_dataset_spec: DatasetSpec,
+        normalized_process_spec: ProcessSpec,
+        normalized_system_spec: SystemSpec,
+    ) -> Dict[str, Any]:
+        """Assemble a DJ-native recipe dict from the three normalized specs."""
+        recipe: Dict[str, Any] = {}
 
-        return DatasetSpec.from_dict(
-            {
-                "io": {
-                    "dataset_path": str(source.io.dataset_path or "").strip(),
-                    "dataset": cls._normalize_params(source.io.dataset) if isinstance(source.io.dataset, dict) else None,
-                    "generated_dataset_config": (
-                        cls._normalize_params(source.io.generated_dataset_config)
-                        if isinstance(source.io.generated_dataset_config, dict)
-                        else None
-                    ),
-                    "export_path": str(source.io.export_path or "").strip(),
-                },
-                "binding": {
-                    "modality": str(source.binding.modality or "unknown").strip() or "unknown",
-                    "text_keys": cls._normalize_string_list(source.binding.text_keys),
-                    "image_key": cls._normalize_optional_text(source.binding.image_key),
-                    "audio_key": cls._normalize_optional_text(source.binding.audio_key),
-                    "video_key": cls._normalize_optional_text(source.binding.video_key),
-                    "image_bytes_key": cls._normalize_optional_text(source.binding.image_bytes_key),
-                },
-                "warnings": cls._normalize_string_list(source.warnings),
-            }
-        )
+        # --- dataset IO fields ---
+        recipe["dataset_path"] = normalized_dataset_spec.io.dataset_path
+        recipe["export_path"] = normalized_dataset_spec.io.export_path
+        if normalized_dataset_spec.io.dataset:
+            recipe["dataset"] = dict(normalized_dataset_spec.io.dataset)
+        if normalized_dataset_spec.io.generated_dataset_config:
+            recipe["generated_dataset_config"] = dict(
+                normalized_dataset_spec.io.generated_dataset_config
+            )
+
+        # --- dataset binding fields ---
+        binding = normalized_dataset_spec.binding
+        if binding.text_keys:
+            recipe["text_keys"] = list(binding.text_keys)
+        if binding.image_key:
+            recipe["image_key"] = binding.image_key
+        if binding.audio_key:
+            recipe["audio_key"] = binding.audio_key
+        if binding.video_key:
+            recipe["video_key"] = binding.video_key
+        if binding.image_bytes_key:
+            recipe["image_bytes_key"] = binding.image_bytes_key
+
+        # --- process: DJ-native format [{op_name: params}] ---
+        recipe["process"] = [
+            {op.name: op.params} for op in normalized_process_spec.operators
+        ]
+
+        # --- system fields ---
+        system_dict = normalized_system_spec.to_dict()
+        # warnings is our internal field, not part of DJ recipe
+        system_dict.pop("warnings", None)
+        recipe.update(system_dict)
+
+        return recipe
 
     @classmethod
     def build_plan_from_specs(
@@ -113,7 +107,7 @@ class PlannerCore:
         approval_required: bool = True,
     ) -> PlanModel:
         try:
-            normalized_dataset = cls.normalize_dataset_spec(dataset_spec)
+            normalized_dataset = normalize_dataset_spec(dataset_spec)
             normalized_process = normalize_process_spec(process_spec)
             normalized_system = normalize_system_spec(
                 system_spec,
@@ -129,30 +123,16 @@ class PlannerCore:
             custom_operator_paths=normalized_system.custom_operator_paths,
         )
         modality = infer_modality(normalized_dataset.binding)
+        recipe = cls._build_recipe(normalized_dataset, normalized_process, normalized_system)
+
         return PlanModel(
             plan_id=PlanModel.new_id(),
             user_intent=context.user_intent,
-            dataset_path=context.dataset_path,
-            export_path=context.export_path,
-            dataset=normalized_dataset.io.dataset,
-            generated_dataset_config=normalized_dataset.io.generated_dataset_config,
             modality=modality,
-            text_keys=list(normalized_dataset.binding.text_keys),
-            image_key=normalized_dataset.binding.image_key,
-            audio_key=normalized_dataset.binding.audio_key,
-            video_key=normalized_dataset.binding.video_key,
-            image_bytes_key=normalized_dataset.binding.image_bytes_key,
-            operators=[OperatorStep(name=item.name, params=item.params) for item in normalized_process.operators],
-            risk_notes=cls._normalize_string_list(risk_notes),
-            estimation=cls._normalize_params(estimation),
-            executor_type=normalized_system.executor_type,
-            np=normalized_system.np,
-            open_tracer=normalized_system.open_tracer,
-            open_monitor=normalized_system.open_monitor,
-            use_cache=normalized_system.use_cache,
-            skip_op_error=normalized_system.skip_op_error,
-            custom_operator_paths=list(normalized_system.custom_operator_paths),
-            warnings=cls._normalize_string_list(
+            recipe=recipe,
+            risk_notes=normalize_string_list(risk_notes),
+            estimation=normalize_params(estimation),
+            warnings=normalize_string_list(
                 list(normalized_dataset.warnings) + list(normalized_system.warnings)
             ),
             approval_required=bool(approval_required),
@@ -182,11 +162,15 @@ def assemble_plan(
         system_spec=system_spec,
         approval_required=approval_required,
     )
+    process_steps = plan.recipe.get("process", [])
+    operator_names = [
+        list(step.keys())[0] for step in process_steps if isinstance(step, dict) and step
+    ]
     return {
         "ok": True,
         "plan": plan.to_dict(),
         "plan_id": plan.plan_id,
-        "operator_names": [item.name for item in plan.operators],
+        "operator_names": operator_names,
         "modality": plan.modality,
         "warnings": list(plan.warnings),
     }

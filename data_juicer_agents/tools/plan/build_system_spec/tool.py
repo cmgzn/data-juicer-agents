@@ -10,13 +10,14 @@ from data_juicer_agents.core.tool import ToolContext, ToolResult, ToolSpec
 from .input import BuildSystemSpecInput
 from .logic import build_system_spec
 
-
 class GenericOutput(BaseModel):
     ok: bool = True
 
-
 def _build_system_spec(_ctx: ToolContext, args: BuildSystemSpecInput) -> ToolResult:
-    result = build_system_spec(custom_operator_paths=args.custom_operator_paths)
+    
+    result = build_system_spec(
+        **args.model_dump(exclude_none=True),
+    )
     if result.get("ok"):
         return ToolResult.success(summary=str(result.get("message", "system spec built")), data=result)
     return ToolResult.failure(
@@ -26,10 +27,14 @@ def _build_system_spec(_ctx: ToolContext, args: BuildSystemSpecInput) -> ToolRes
         data=result,
     )
 
-
 BUILD_SYSTEM_SPEC = ToolSpec(
     name="build_system_spec",
-    description="Build a conservative minimal system spec from explicit custom_operator_paths.",
+    description=(
+        "Build a system spec with Data-Juicer configuration. "
+        "Core parameters: np, executor_type, custom_operator_paths. "
+        "Advanced parameters (open_tracer, use_cache, checkpoint, etc.) can be passed directly. "
+        "Use list_system_config to discover all available system configuration options."
+    ),
     input_model=BuildSystemSpecInput,
     output_model=GenericOutput,
     executor=_build_system_spec,
@@ -37,6 +42,5 @@ BUILD_SYSTEM_SPEC = ToolSpec(
     effects="write",
     confirmation="none",
 )
-
 
 __all__ = ["BUILD_SYSTEM_SPEC"]

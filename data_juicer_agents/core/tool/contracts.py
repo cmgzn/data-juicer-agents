@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, Tuple, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 
 ToolEffect = Literal["read", "write", "execute", "external"]
@@ -127,11 +127,20 @@ class ToolSpec:
     confirmation: ToolConfirmation = "none"
 
     def execute(self, ctx: ToolContext, raw_input: BaseModel | Dict[str, Any]) -> ToolResult:
-        if isinstance(raw_input, self.input_model):
-            parsed = raw_input
-        else:
-            parsed = self.input_model.model_validate(raw_input)
-        return self.executor(ctx, parsed)
+        try:
+            if isinstance(raw_input, self.input_model):
+                parsed = raw_input
+            else:
+                parsed = self.input_model.model_validate(raw_input)
+            return self.executor(ctx, parsed)
+        except ValidationError:
+            raise
+        except Exception as exc:
+            return ToolResult.failure(
+                summary=f"tool '{self.name}' raised an unexpected exception: {exc}",
+                error_type="tool_exception",
+                error_message=str(exc),
+            )
 
 
 __all__ = [
