@@ -6,6 +6,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
+from .._shared.dataset_spec import (
+    is_probable_remote_dataset_path,
+    is_probable_remote_export_path,
+    validate_dataset_config_payload,
+)
 from .._shared.schema import PlanModel, _ALLOWED_MODALITIES
 
 
@@ -60,21 +65,36 @@ class PlanValidator:
         errors = validate_plan_schema(plan)
         errors.extend(validate_recipe_with_dj(plan.recipe))
 
-        dataset_path_str = plan.recipe.get("dataset_path")
-        if not dataset_path_str:
-            errors.append("recipe.dataset_path is required")
-        else:
+        dataset_path_str = str(plan.recipe.get("dataset_path", "") or "").strip()
+        dataset_cfg = plan.recipe.get("dataset")
+        generated_cfg = plan.recipe.get("generated_dataset_config")
+        has_dataset_source = bool(dataset_path_str) or bool(dataset_cfg) or bool(generated_cfg)
+        if not has_dataset_source:
+            errors.append("recipe requires one of dataset_path, dataset, or generated_dataset_config")
+        if dataset_path_str:
             dataset_path = Path(dataset_path_str).expanduser()
             if not dataset_path.exists():
-                errors.append(f"dataset_path does not exist: {dataset_path_str}")
+                if not (is_probable_remote_dataset_path(dataset_path_str) or dataset_cfg or generated_cfg):
+                    errors.append(f"dataset_path does not exist: {dataset_path_str}")
+
+        if generated_cfg is not None:
+            if not isinstance(generated_cfg, dict):
+                errors.append("generated_dataset_config must be an object")
+            elif not str(generated_cfg.get("type", "")).strip():
+                errors.append("generated_dataset_config.type is required")
+
+        if dataset_cfg is not None:
+            dataset_errors, _dataset_warnings = validate_dataset_config_payload(dataset_cfg)
+            errors.extend(dataset_errors)
 
         export_path_str = plan.recipe.get("export_path")
         if not export_path_str:
             errors.append("recipe.export_path is required")
         else:
-            export_parent = Path(export_path_str).expanduser().resolve().parent
-            if not export_parent.exists():
-                errors.append(f"export parent directory does not exist: {export_parent}")
+            if not is_probable_remote_export_path(export_path_str):
+                export_parent = Path(export_path_str).expanduser().resolve().parent
+                if not export_parent.exists():
+                    errors.append(f"export parent directory does not exist: {export_parent}")
 
         if plan.recipe.get("custom_operator_paths"):
             for raw_path in plan.recipe["custom_operator_paths"]:

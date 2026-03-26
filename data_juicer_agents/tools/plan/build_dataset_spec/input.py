@@ -10,10 +10,22 @@ from pydantic import BaseModel, Field
 
 class BuildDatasetSpecInput(BaseModel):
     intent: str = Field(description="User intent for the current planning task.")
-    dataset_path: str = Field(description="Input dataset path.")
+    dataset_path: str = Field(
+        default="",
+        description="Optional dataset path (local or remote).",
+    )
+    dataset: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Optional dataset config dict (Data-Juicer dataset.configs schema).",
+    )
+    generated_dataset_config: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Optional dataset generator config (Data-Juicer generated_dataset_config).",
+    )
     export_path: str = Field(description="Output dataset path.")
     dataset_profile: Dict[str, Any] = Field(
-        description="Dataset inspection payload returned by inspect_dataset.",
+        default_factory=dict,
+        description="Optional dataset inspection payload returned by inspect_dataset.",
     )
     modality_hint: str = Field(default="", description="Optional explicit modality override.")
     text_keys_hint: List[str] = Field(default_factory=list, description="Optional text key overrides.")

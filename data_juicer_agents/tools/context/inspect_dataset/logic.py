@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -47,6 +48,21 @@ def _value_kind(value: Any) -> str:
     return "other"
 
 
+def _is_probable_remote_dataset_path(path: str) -> bool:
+    if not path:
+        return False
+    try:
+        from data_juicer.utils.file_utils import is_absolute_path, is_remote_path
+    except Exception:
+        is_remote_path = lambda p: str(p).startswith(("http://", "https://", "s3://", "gs://", "hdfs://"))
+        is_absolute_path = lambda p: os.path.isabs(str(p))
+    if is_remote_path(path):
+        return True
+    if not is_absolute_path(path) and not str(path).startswith(".") and str(path).count("/") <= 1:
+        return True
+    return False
+
+
 def _load_jsonl_records(path: Path, sample_size: int) -> Tuple[List[Dict[str, Any]], int]:
     rows: List[Dict[str, Any]] = []
     scanned = 0
@@ -78,11 +94,80 @@ def _load_json_records(path: Path, sample_size: int) -> Tuple[List[Dict[str, Any
     return [], 0
 
 
-def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str, Any]:
+def _extract_local_dataset_path(dataset_cfg: Dict[str, Any]) -> str:
+    if not isinstance(dataset_cfg, dict):
+        return ""
+    configs = dataset_cfg.get("configs")
+    if not isinstance(configs, list):
+        return ""
+    for item in configs:
+        if not isinstance(item, dict):
+            continue
+        data_type = str(item.get("type", "")).strip()
+        path = str(item.get("path", "")).strip()
+        if data_type == "local" and path:
+            return path
+    return ""
+
+
+def inspect_dataset_schema(
+    dataset_path: str,
+    sample_size: int = 20,
+    dataset: Dict[str, Any] | None = None,
+    generated_dataset_config: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     """Inspect a small sample of a dataset and infer keys/modality for planning."""
+
+    dataset_path = str(dataset_path or "").strip()
+    dataset = dataset if isinstance(dataset, dict) and dataset else None
+    generated_dataset_config = (
+        generated_dataset_config if isinstance(generated_dataset_config, dict) and generated_dataset_config else None
+    )
+
+    if not dataset_path and dataset:
+        dataset_path = _extract_local_dataset_path(dataset)
+
+    if not dataset_path:
+        if dataset or generated_dataset_config:
+            return {
+                "ok": True,
+                "message": "dataset inspection skipped for non-local dataset config",
+                "dataset_path": "",
+                "sampled_records": 0,
+                "scanned_lines": 0,
+                "modality": "unknown",
+                "keys": [],
+                "candidate_text_keys": [],
+                "candidate_image_keys": [],
+                "key_stats": {},
+                "sample_preview": [],
+                "warnings": ["inspection skipped: dataset_path unavailable for local sampling"],
+            }
+        return {
+            "ok": False,
+            "error_type": "dataset_path_missing",
+            "error": "dataset_path is required for inspection",
+            "message": "dataset_path is required for inspection",
+            "dataset_path": "",
+        }
 
     path = Path(dataset_path)
     if not path.exists():
+        if _is_probable_remote_dataset_path(dataset_path) or dataset or generated_dataset_config:
+            return {
+                "ok": True,
+                "message": "dataset inspection skipped for remote dataset_path",
+                "dataset_path": dataset_path,
+                "sampled_records": 0,
+                "scanned_lines": 0,
+                "modality": "unknown",
+                "keys": [],
+                "candidate_text_keys": [],
+                "candidate_image_keys": [],
+                "key_stats": {},
+                "sample_preview": [],
+                "warnings": [f"dataset_path not found locally; treated as remote: {dataset_path}"],
+            }
         return {
             "ok": False,
             "error_type": "dataset_path_not_found",

@@ -59,9 +59,11 @@ Package-level `__init__.py` files re-export stable helpers, and some groups keep
 - Files:
   - `context/registry.py`
   - `context/inspect_dataset/{input.py,logic.py,tool.py}`
+  - `context/list_dataset_load_strategies/{input.py,logic.py,tool.py}`
 - Main responsibilities:
   - dataset inspection
   - dataset schema probing
+  - dataset load strategy discovery
 
 ### `tools/retrieve`
 
@@ -167,6 +169,7 @@ The session toolkit currently uses the default registry directly and orders tool
 The default registry currently exposes these tools to the session runtime:
 
 - `inspect_dataset`
+- `list_dataset_load_strategies`
 - `retrieve_operators`
 - `build_dataset_spec`
 - `build_process_spec`

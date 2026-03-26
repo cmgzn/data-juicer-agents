@@ -21,6 +21,8 @@ def _build_dataset_spec(_ctx: ToolContext, args: BuildDatasetSpecInput) -> ToolR
         dataset_path=args.dataset_path,
         export_path=args.export_path,
         dataset_profile=args.dataset_profile,
+        dataset=args.dataset,
+        generated_dataset_config=args.generated_dataset_config,
         modality_hint=args.modality_hint,
         text_keys_hint=args.text_keys_hint,
         image_key_hint=args.image_key_hint,
@@ -41,8 +43,8 @@ def _build_dataset_spec(_ctx: ToolContext, args: BuildDatasetSpecInput) -> ToolR
 BUILD_DATASET_SPEC = ToolSpec(
     name="build_dataset_spec",
     description=(
-        "Build a deterministic dataset spec from an explicit user intent, dataset_path, export_path, "
-        "and the dataset_profile returned by inspect_dataset."
+        "Build a deterministic dataset spec from explicit intent, dataset source (dataset_path/dataset/"
+        "generated_dataset_config), export_path, and optional dataset_profile."
     ),
     input_model=BuildDatasetSpecInput,
     output_model=GenericOutput,

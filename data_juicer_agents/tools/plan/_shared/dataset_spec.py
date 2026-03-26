@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -86,6 +87,93 @@ def infer_modality(binding: DatasetBindingSpec) -> str:
     return "unknown"
 
 
+def _is_probable_remote_dataset_path(path: str) -> bool:
+    if not path:
+        return False
+    try:
+        from data_juicer.utils.file_utils import is_absolute_path, is_remote_path
+    except Exception:
+        is_remote_path = lambda p: str(p).startswith(("http://", "https://", "s3://", "gs://", "hdfs://"))
+        is_absolute_path = lambda p: os.path.isabs(str(p))
+
+    if is_remote_path(path):
+        return True
+    # HuggingFace-style dataset id: "org/name" or "name"
+    if not is_absolute_path(path) and not str(path).startswith(".") and str(path).count("/") <= 1:
+        return True
+    return False
+
+
+def _is_probable_remote_export_path(path: str) -> bool:
+    if not path:
+        return False
+    try:
+        from data_juicer.utils.file_utils import is_remote_path
+    except Exception:
+        is_remote_path = lambda p: str(p).startswith(("http://", "https://", "s3://", "gs://", "hdfs://"))
+    return bool(is_remote_path(path))
+
+
+def _validate_dataset_config(dataset_cfg: Dict[str, Any]) -> Tuple[List[str], List[str]]:
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(dataset_cfg, dict):
+        errors.append("dataset must be an object with a 'configs' list")
+        return errors, warnings
+
+    configs = dataset_cfg.get("configs")
+    if not isinstance(configs, list) or not configs:
+        errors.append("dataset.configs must be a non-empty list")
+        return errors, warnings
+
+    if "max_sample_num" in dataset_cfg:
+        max_sample_num = dataset_cfg.get("max_sample_num")
+        if not isinstance(max_sample_num, int) or max_sample_num <= 0:
+            errors.append("dataset.max_sample_num must be a positive integer")
+
+    normalized_types: List[str] = []
+    for idx, ds_config in enumerate(configs):
+        if not isinstance(ds_config, dict):
+            errors.append(f"dataset.configs[{idx}] must be an object")
+            continue
+        data_type = str(ds_config.get("type", "")).strip()
+        data_source = str(ds_config.get("source", "")).strip()
+        if not data_type:
+            errors.append(f"dataset.configs[{idx}].type is required")
+            continue
+        normalized_types.append(data_type)
+
+        try:
+            from jsonargparse import Namespace
+            from data_juicer.core.data.load_strategy import DataLoadStrategyRegistry
+
+            strategy_cls = DataLoadStrategyRegistry.get_strategy_class(
+                "default",
+                data_type,
+                data_source or "*",
+            )
+            if strategy_cls is None:
+                errors.append(
+                    f"dataset.configs[{idx}] has no matching load strategy: type={data_type}, source={data_source or '*'}"
+                )
+            else:
+                try:
+                    strategy_cls(ds_config, cfg=Namespace())
+                except Exception as exc:
+                    errors.append(f"dataset.configs[{idx}] invalid: {exc}")
+        except Exception as exc:
+            warnings.append(f"dataset strategy validation skipped: {exc}")
+
+    normalized_type_set = {item for item in normalized_types if item}
+    if len(normalized_type_set) > 1:
+        errors.append("mixture of different dataset source types is not supported")
+    if normalized_type_set == {"remote"} and len(configs) > 1:
+        errors.append("multiple remote datasets are not supported")
+
+    return errors, warnings
+
+
 def _dataset_source_priority_warning(source_count: int) -> str | None:
     if source_count <= 1:
         return None
@@ -114,26 +202,24 @@ def validate_dataset_spec_payload(
     if source_warning and source_warning not in warnings:
         warnings.append(source_warning)
 
-    if io.dataset and not io.dataset_path:
-        errors.append("dataset source objects are reserved for a later iteration; use dataset_path for now")
-    if io.generated_dataset_config and not io.dataset_path:
-        errors.append(
-            "generated_dataset_config is reserved for a later iteration; use dataset_path for now"
-        )
-    if not io.dataset_path:
-        errors.append("dataset_path is required in this iteration")
+    if not source_count:
+        errors.append("one of dataset_path, dataset, or generated_dataset_config is required")
     if not io.export_path:
         errors.append("export_path is required")
 
     if io.dataset_path:
         dataset_path = Path(io.dataset_path).expanduser()
         if not dataset_path.exists():
-            errors.append(f"dataset_path does not exist: {io.dataset_path}")
+            if _is_probable_remote_dataset_path(io.dataset_path) or io.dataset or io.generated_dataset_config:
+                warnings.append(f"dataset_path not found locally; treated as remote: {io.dataset_path}")
+            else:
+                errors.append(f"dataset_path does not exist: {io.dataset_path}")
 
     if io.export_path:
-        export_parent = Path(io.export_path).expanduser().resolve().parent
-        if not export_parent.exists():
-            errors.append(f"export parent directory does not exist: {export_parent}")
+        if not _is_probable_remote_export_path(io.export_path):
+            export_parent = Path(io.export_path).expanduser().resolve().parent
+            if not export_parent.exists():
+                errors.append(f"export parent directory does not exist: {export_parent}")
 
     if binding.modality not in _ALLOWED_MODALITIES:
         errors.append("modality must be one of text/image/audio/video/multimodal/unknown")
@@ -164,14 +250,16 @@ def validate_dataset_spec_payload(
             if value and known_keys and value not in known_keys:
                 errors.append(f"{field_name} not found in inspected dataset profile: {value}")
 
-    dataset_cfg = io.dataset or {}
-    if isinstance(dataset_cfg, dict) and isinstance(dataset_cfg.get("configs"), list):
-        types = [item.get("type") for item in dataset_cfg.get("configs", []) if isinstance(item, dict)]
-        normalized_types = {str(item).strip() for item in types if str(item).strip()}
-        if len(normalized_types) > 1:
-            errors.append("mixture of different dataset source types is not supported")
-        if normalized_types == {"remote"} and len(dataset_cfg.get("configs", [])) > 1:
-            errors.append("multiple remote datasets are not supported")
+    if io.generated_dataset_config is not None:
+        if not isinstance(io.generated_dataset_config, dict):
+            errors.append("generated_dataset_config must be an object")
+        elif not str(io.generated_dataset_config.get("type", "")).strip():
+            errors.append("generated_dataset_config.type is required")
+
+    if io.dataset is not None:
+        dataset_errors, dataset_warnings = _validate_dataset_config(io.dataset)
+        errors.extend(dataset_errors)
+        warnings.extend([item for item in dataset_warnings if item not in warnings])
 
     # DJ parser validation for dataset fields
     try:
@@ -203,8 +291,23 @@ def validate_dataset_spec_payload(
     return errors, warnings
 
 
+def validate_dataset_config_payload(dataset_cfg: Dict[str, Any]) -> Tuple[List[str], List[str]]:
+    return _validate_dataset_config(dataset_cfg)
+
+
+def is_probable_remote_dataset_path(path: str) -> bool:
+    return _is_probable_remote_dataset_path(path)
+
+
+def is_probable_remote_export_path(path: str) -> bool:
+    return _is_probable_remote_export_path(path)
+
+
 __all__ = [
     "infer_modality",
+    "is_probable_remote_dataset_path",
+    "is_probable_remote_export_path",
     "normalize_dataset_spec",
+    "validate_dataset_config_payload",
     "validate_dataset_spec_payload",
 ]

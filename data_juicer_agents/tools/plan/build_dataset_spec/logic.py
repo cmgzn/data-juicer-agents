@@ -8,11 +8,14 @@ from .._shared.normalize import normalize_string_list
 from .._shared.schema import DatasetSpec
 
 
-def build_dataset_spec(    *,
+def build_dataset_spec(
+    *,
     user_intent: str,
     dataset_path: str,
     export_path: str,
     dataset_profile: Dict[str, Any] | None = None,
+    dataset: Dict[str, Any] | None = None,
+    generated_dataset_config: Dict[str, Any] | None = None,
     modality_hint: str = "",
     text_keys_hint: Iterable[Any] | None = None,
     image_key_hint: str = "",
@@ -22,12 +25,18 @@ def build_dataset_spec(    *,
 ) -> Dict[str, Any]:
     dataset_path = str(dataset_path or "").strip()
     export_path = str(export_path or "").strip()
-    if not dataset_path:
+    dataset = dataset if isinstance(dataset, dict) and dataset else None
+    generated_dataset_config = (
+        generated_dataset_config
+        if isinstance(generated_dataset_config, dict) and generated_dataset_config
+        else None
+    )
+    if not (dataset_path or dataset or generated_dataset_config):
         return {
             "ok": False,
             "error_type": "missing_required",
-            "message": "dataset_path is required for build_dataset_spec",
-            "requires": ["dataset_path"],
+            "message": "one of dataset_path, dataset, or generated_dataset_config is required",
+            "requires": ["dataset_path", "dataset", "generated_dataset_config"],
         }
     if not export_path:
         return {
@@ -72,6 +81,8 @@ def build_dataset_spec(    *,
         {
             "io": {
                 "dataset_path": dataset_path,
+                "dataset": dataset,
+                "generated_dataset_config": generated_dataset_config,
                 "export_path": export_path,
             },
             "binding": {
