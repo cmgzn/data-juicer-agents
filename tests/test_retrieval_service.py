@@ -29,7 +29,7 @@ def test_retrieval_service_falls_back_to_lexical(monkeypatch):
     monkeypatch.setattr(
         svc,
         "_safe_async_retrieve",
-        lambda intent, top_k, mode: {
+        lambda intent, top_k, mode, op_type=None: {
             "names": [],
             "source": "",
             "trace": [{"backend": "llm", "status": "failed", "error": "boom"}],
@@ -59,7 +59,7 @@ def test_retrieval_service_falls_back_to_lexical(monkeypatch):
 def test_safe_async_retrieve_works_inside_running_loop(monkeypatch):
     from data_juicer_agents.tools.retrieve.retrieve_operators import logic as svc
 
-    async def fake_retrieve_ops_with_meta(intent, limit=10, mode="auto"):
+    async def fake_retrieve_ops_with_meta(intent, limit=10, mode="auto", op_type=None):
         return {
             "names": ["text_length_filter"],
             "source": "vector",
@@ -101,7 +101,7 @@ def test_retrieval_service_prefers_true_backend_source(monkeypatch):
     monkeypatch.setattr(
         svc,
         "_safe_async_retrieve",
-        lambda intent, top_k, mode: {
+        lambda intent, top_k, mode, op_type=None: {
             "names": ["text_length_filter"],
             "source": "vector",
             "trace": [
@@ -149,7 +149,7 @@ def test_retrieval_service_uses_llm_scores_when_source_is_llm(monkeypatch):
     monkeypatch.setattr(
         svc,
         "_safe_async_retrieve",
-        lambda intent, top_k, mode: {
+        lambda intent, top_k, mode, op_type=None: {
             "names": ["text_length_filter"],
             "source": "llm",
             "trace": [{"backend": "llm", "status": "success"}],

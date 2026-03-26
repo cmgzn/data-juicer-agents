@@ -98,9 +98,11 @@ def _get_op_searcher():
     global _cached_op_searcher
     if _cached_op_searcher is not None:
         return _cached_op_searcher
-    from data_juicer.tools.op_search import OPSearcher
+    # Reuse the OPSearcher instance already created by catalog.py at import
+    # time, avoiding a redundant scan of the operator registry.
+    from .catalog import searcher
 
-    _cached_op_searcher = OPSearcher(include_formatter=False)
+    _cached_op_searcher = searcher
     return _cached_op_searcher
 
 def _get_content_hash(dj_func_info: list) -> str:
@@ -120,6 +122,13 @@ def _load_cached_index() -> bool:
     try:
         # Get current dj_func_info
         dj_func_info = get_dj_func_info()
+
+        # Fast path: if dj_func_info object identity is unchanged and we
+        # already have a content hash, skip the expensive JSON serialization
+        # + SHA256 computation.
+        if _cached_content_hash and _cached_tools_info is dj_func_info:
+            return _cached_vector_store is not None
+
         current_hash = _get_content_hash(dj_func_info)
         
         if not current_hash:
@@ -217,19 +226,23 @@ def refresh_dj_func_info():
     try:
         logging.info("Refreshing dj_func_info...")
         
-        # Clear existing cache to force rebuild
+        # Clear all caches to force rebuild
         _cached_vector_store = None
         _cached_tools_info = None
         _cached_content_hash = None
         _cached_op_searcher = None
+        _global_dj_func_info = None
         
-        # Reload dj_func_info
+        # Reload modules and read dj_func_info directly from the reloaded
+        # module object.  Using ``get_dj_func_info()`` here would go through
+        # ``init_dj_func_info()`` → ``from .catalog import dj_func_info``
+        # which may return stale data from the Python import cache.
         import importlib
-        from . import catalog as create_dj_func_info
+        from . import catalog as catalog_mod
         from data_juicer import ops
         importlib.reload(ops)
-        importlib.reload(create_dj_func_info)
-        dj_func_info = get_dj_func_info()
+        importlib.reload(catalog_mod)
+        dj_func_info = catalog_mod.dj_func_info
         
         _global_dj_func_info = dj_func_info
         logging.info(f"Successfully refreshed dj_func_info with {len(_global_dj_func_info)} operators")
@@ -251,13 +264,14 @@ def get_dj_func_info():
             # Fallback to direct import if initialization fails
             logging.warning("Falling back to direct import of dj_func_info")
             from .catalog import dj_func_info
+            _global_dj_func_info = dj_func_info
             return dj_func_info
     
     return _global_dj_func_info
 
-async def retrieve_ops_lm(user_query, limit=20):
+async def retrieve_ops_lm(user_query, limit=20, op_type=None):
     """Tool retrieval using language model - returns list of tool names"""
-    items = await retrieve_ops_lm_items(user_query, limit=limit)
+    items = await retrieve_ops_lm_items(user_query, limit=limit, op_type=op_type)
     return [
         str(item.get("tool_name", "")).strip()
         for item in items
@@ -265,9 +279,28 @@ async def retrieve_ops_lm(user_query, limit=20):
     ]
 
 
-async def retrieve_ops_lm_items(user_query, limit=20):
-    """Tool retrieval using language model - returns validated tool metadata."""
+async def retrieve_ops_lm_items(user_query, limit=20, op_type=None):
+    """Tool retrieval using language model - returns validated tool metadata.
+
+    Args:
+        user_query: User query string.
+        limit: Maximum number of tools to retrieve.
+        op_type: Optional operator type filter (e.g. "filter", "mapper").
+                 When provided, only operators matching this type are included
+                 in the candidate list sent to the LLM, reducing noise and
+                 improving retrieval speed.
+    """
     dj_func_info = get_dj_func_info()
+
+    # Pre-filter by op_type before sending to LLM for ranking
+    if op_type:
+        filtered_info = [
+            t for t in dj_func_info
+            if str(t.get("class_type", "")).strip().lower() == op_type.strip().lower()
+        ]
+        # Fall back to full list if filter yields nothing
+        if filtered_info:
+            dj_func_info = filtered_info
 
     tool_descriptions = [
         f"{t['class_name']}: {t['class_desc']}" for t in dj_func_info
@@ -389,37 +422,70 @@ def _build_vector_index():
     logging.info("Successfully built and cached vector index")
 
 
-def retrieve_ops_vector(user_query, limit=20):
-    """Tool retrieval using vector search with smart caching - returns list of tool names"""
+def retrieve_ops_vector(user_query, limit=20, op_type=None):
+    """Tool retrieval using vector search with smart caching - returns list of tool names.
+
+    Args:
+        user_query: User query string.
+        limit: Maximum number of tools to retrieve.
+        op_type: Optional operator type filter (e.g. "filter", "mapper").
+                 When provided, vector search results are post-filtered to
+                 only include operators of the specified type.
+    """
     global _cached_vector_store, _cached_tools_info
 
-    # Try to load from cache first, only rebuild if content changed
-    if not _load_cached_index():
-        logging.info("Building new vector index...")
-        _build_vector_index()
+    # Skip disk check when both memory caches are already populated
+    if _cached_vector_store is None or _cached_tools_info is None:
+        if not _load_cached_index():
+            logging.info("Building new vector index...")
+            _build_vector_index()
+
+    # Request more candidates when filtering by op_type to compensate for
+    # results that will be removed during post-filtering.
+    search_k = limit * 3 if op_type else limit
 
     # Perform similarity search
     retrieved_tools = _cached_vector_store.similarity_search(
         user_query,
-        k=limit,
+        k=search_k,
     )
     retrieved_indices = [doc.metadata["index"] for doc in retrieved_tools]
 
-    # Extract tool names from retrieved indices using cached tools info
+    # Extract tool names from retrieved indices using cached tools info,
+    # applying op_type post-filter when specified.
     tool_names = []
     for raw_idx in retrieved_indices:
         tool_info = _cached_tools_info[raw_idx]
+        if op_type:
+            info_type = str(tool_info.get("class_type", "")).strip().lower()
+            if info_type != op_type.strip().lower():
+                continue
         tool_names.append(tool_info["class_name"])
+        if len(tool_names) >= limit:
+            break
 
     return tool_names
 
 
-def retrieve_ops_bm25_items(user_query: str, limit: int = 20) -> List[Dict[str, Any]]:
-    """Tool retrieval using Data-Juicer OPSearcher BM25."""
+def retrieve_ops_bm25_items(
+    user_query: str,
+    limit: int = 20,
+    op_type: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Tool retrieval using Data-Juicer OPSearcher BM25.
+
+    Args:
+        user_query: User query string.
+        limit: Maximum number of tools to retrieve.
+        op_type: Optional operator type filter (e.g. "filter", "mapper",
+                 "deduplicator"). Passed directly to OPSearcher.search_by_bm25
+                 for pre-filtering before ranking.
+    """
     searcher = _get_op_searcher()
     ranked = searcher.search_by_bm25(
         query=user_query,
         top_k=limit,
+        op_type=op_type,
     )
 
     items: List[Dict[str, Any]] = []
@@ -449,10 +515,14 @@ def retrieve_ops_bm25_items(user_query: str, limit: int = 20) -> List[Dict[str, 
     return items
 
 
-def retrieve_ops_bm25(user_query: str, limit: int = 20) -> List[str]:
+def retrieve_ops_bm25(
+    user_query: str,
+    limit: int = 20,
+    op_type: Optional[str] = None,
+) -> List[str]:
     return [
         str(item.get("tool_name", "")).strip()
-        for item in retrieve_ops_bm25_items(user_query, limit=limit)
+        for item in retrieve_ops_bm25_items(user_query, limit=limit, op_type=op_type)
         if str(item.get("tool_name", "")).strip()
     ]
 
@@ -475,8 +545,18 @@ async def retrieve_ops_with_meta(
     user_query: str,
     limit: int = 20,
     mode: str = "auto",
+    op_type: Optional[str] = None,
 ) -> dict:
-    """Tool retrieval with source/trace metadata."""
+    """Tool retrieval with source/trace metadata.
+
+    Args:
+        user_query: User query string.
+        limit: Maximum number of tools to retrieve.
+        mode: Retrieval mode - "llm", "vector", "bm25", or "auto".
+        op_type: Optional operator type filter (e.g. "filter", "mapper",
+                 "deduplicator"). Propagated to each backend for early
+                 filtering, reducing candidate noise and improving speed.
+    """
     api_key_ready = _has_retrieval_api_key()
 
     def _names_from_items(items: List[Dict[str, Any]]) -> List[str]:
@@ -495,7 +575,7 @@ async def retrieve_ops_with_meta(
                 "items": [],
             }
         try:
-            items = await retrieve_ops_lm_items(user_query, limit=limit)
+            items = await retrieve_ops_lm_items(user_query, limit=limit, op_type=op_type)
             names = _names_from_items(items)
             return {
                 "names": names,
@@ -521,7 +601,7 @@ async def retrieve_ops_with_meta(
                 "items": [],
             }
         try:
-            names = retrieve_ops_vector(user_query, limit=limit)
+            names = retrieve_ops_vector(user_query, limit=limit, op_type=op_type)
             return {
                 "names": names,
                 "source": "vector" if names else "",
@@ -539,7 +619,7 @@ async def retrieve_ops_with_meta(
 
     if mode == "bm25":
         try:
-            items = retrieve_ops_bm25_items(user_query, limit=limit)
+            items = retrieve_ops_bm25_items(user_query, limit=limit, op_type=op_type)
             names = _names_from_items(items)
             return {
                 "names": names,
@@ -560,7 +640,7 @@ async def retrieve_ops_with_meta(
         trace = []
         if api_key_ready:
             try:
-                items = await retrieve_ops_lm_items(user_query, limit=limit)
+                items = await retrieve_ops_lm_items(user_query, limit=limit, op_type=op_type)
                 names = _names_from_items(items)
                 trace.append(_trace_step("llm", "success" if names else "empty"))
                 if names:
@@ -578,7 +658,7 @@ async def retrieve_ops_with_meta(
                 trace.append(_trace_step("llm", "failed", str(exc)))
 
             try:
-                names = retrieve_ops_vector(user_query, limit=limit)
+                names = retrieve_ops_vector(user_query, limit=limit, op_type=op_type)
                 trace.append(_trace_step("vector", "success" if names else "empty"))
                 if names:
                     return {
@@ -598,7 +678,7 @@ async def retrieve_ops_with_meta(
             trace.append(_trace_step("vector", "skipped", reason="missing_api_key"))
 
         try:
-            bm25_items = retrieve_ops_bm25_items(user_query, limit=limit)
+            bm25_items = retrieve_ops_bm25_items(user_query, limit=limit, op_type=op_type)
             bm25_names = _names_from_items(bm25_items)
             trace.append(_trace_step("bm25", "success" if bm25_names else "empty"))
             if bm25_names:
@@ -631,6 +711,7 @@ async def retrieve_ops(
     user_query: str,
     limit: int = 20,
     mode: str = "auto",
+    op_type: Optional[str] = None,
 ) -> list:
     """
     Tool retrieval with configurable mode
@@ -643,6 +724,9 @@ async def retrieve_ops(
               - "vector": Use vector search only
               - "bm25": Use OPSearch BM25 retrieval only
               - "auto": Try llm -> vector -> bm25 by order
+        op_type: Optional operator type filter (e.g. "filter", "mapper",
+                 "deduplicator"). When provided, only operators of the
+                 specified type are returned.
 
     Returns:
         List of tool names
@@ -651,6 +735,7 @@ async def retrieve_ops(
         user_query=user_query,
         limit=limit,
         mode=mode,
+        op_type=op_type,
     )
     return list(meta.get("names", []))
 

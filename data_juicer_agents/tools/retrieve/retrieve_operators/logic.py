@@ -96,7 +96,12 @@ def _trace_entry(backend: str, status: str, error: str = "", reason: str = "") -
     return payload
 
 
-def _safe_async_retrieve(intent: str, top_k: int, mode: str) -> Dict[str, Any]:
+def _safe_async_retrieve(
+    intent: str,
+    top_k: int,
+    mode: str,
+    op_type: str | None = None,
+) -> Dict[str, Any]:
     funcs = _load_op_retrieval_funcs()
     if funcs is None:
         return {
@@ -133,7 +138,7 @@ def _safe_async_retrieve(intent: str, top_k: int, mode: str) -> Dict[str, Any]:
             loop = asyncio.new_event_loop()
             try:
                 payload["meta"] = loop.run_until_complete(
-                    retrieve_ops_with_meta(intent, limit=top_k, mode=mode)
+                    retrieve_ops_with_meta(intent, limit=top_k, mode=mode, op_type=op_type)
                 )
             except Exception as exc:
                 payload["error"] = exc
@@ -155,7 +160,7 @@ def _safe_async_retrieve(intent: str, top_k: int, mode: str) -> Dict[str, Any]:
         return meta
     except RuntimeError:
         meta = _normalize_meta(
-            asyncio.run(retrieve_ops_with_meta(intent, limit=top_k, mode=mode))
+            asyncio.run(retrieve_ops_with_meta(intent, limit=top_k, mode=mode, op_type=op_type))
         )
         if meta.get("names"):
             return meta
@@ -228,8 +233,19 @@ def retrieve_operator_candidates(
     top_k: int = 10,
     mode: str = "auto",
     dataset_path: str | None = None,
+    op_type: str | None = None,
 ) -> Dict[str, Any]:
-    """Retrieve operators and return a structured payload for CLI/agent usage."""
+    """Retrieve operators and return a structured payload for CLI/agent usage.
+
+    Args:
+        intent: Natural-language description of the desired operators.
+        top_k: Maximum number of candidates to return.
+        mode: Retrieval backend mode ("llm", "vector", "bm25", or "auto").
+        dataset_path: Optional dataset path (reserved for future use).
+        op_type: Optional operator type filter (e.g. "filter", "mapper",
+                 "deduplicator"). Propagated to retrieval backends for early
+                 filtering.
+    """
 
     top_k = int(top_k) if isinstance(top_k, int) or str(top_k).isdigit() else 10
     if top_k <= 0:
@@ -254,7 +270,7 @@ def retrieve_operator_candidates(
         str(item.get("class_name", "")).strip(): item for item in info_rows
     }
 
-    retrieve_meta = _safe_async_retrieve(intent, top_k=top_k, mode=mode)
+    retrieve_meta = _safe_async_retrieve(intent, top_k=top_k, mode=mode, op_type=op_type)
     retrieved_names = list(retrieve_meta.get("names", []))
     retrieval_source = str(retrieve_meta.get("source", "")).strip()
     retrieval_trace = list(retrieve_meta.get("trace", []))
@@ -306,7 +322,7 @@ def retrieve_operator_candidates(
     if not candidates:
         notes.append("No operator candidates were found from retrieval.")
 
-    return {
+    result = {
         "ok": True,
         "intent": intent,
         "top_k": top_k,
@@ -318,6 +334,9 @@ def retrieve_operator_candidates(
         "candidates": candidates,
         "notes": notes,
     }
+    if op_type:
+        result["op_type"] = op_type
+    return result
 
 
 def extract_candidate_names(payload: Dict[str, Any]) -> List[str]:
