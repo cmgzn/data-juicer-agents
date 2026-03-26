@@ -76,13 +76,14 @@ Notes:
 ## `djx retrieve`
 
 ```bash
-djx retrieve "<intent>" [--dataset <path>] [--top-k 10] [--mode auto|llm|vector] [--json]
+djx retrieve "<intent>" [--dataset <path>] [--top-k 10] [--mode auto|llm|vector|bm25] [--json]
 ```
 
 Returns:
 - ranked operator candidates
 - retrieval source, trace, and notes
 - the output payload does not include dataset profile
+- `auto` uses `llm -> vector -> bm25 -> lexical` (without API key: `bm25 -> lexical`)
 
 ## `djx dev`
 

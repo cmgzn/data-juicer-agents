@@ -4,8 +4,9 @@ import hashlib
 import logging
 import os
 import os.path as osp
+import re
 import time
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from langchain_community.vectorstores import FAISS
 
@@ -15,6 +16,7 @@ VECTOR_INDEX_CACHE_PATH = osp.join(osp.dirname(__file__), "vector_index_cache")
 _cached_vector_store: Optional[FAISS] = None
 _cached_tools_info: Optional[list] = None
 _cached_content_hash: Optional[str] = None
+_cached_op_searcher: Any = None
 
 # Global variable for agent lifecycle management
 _global_dj_func_info: Optional[list] = None
@@ -62,6 +64,44 @@ RETRIEVAL_PROMPT = """You are a professional tool retrieval assistant responsibl
     ]
     Output strictly in JSON array format, and only output the JSON array format tool list.
 """
+
+
+def _has_retrieval_api_key() -> bool:
+    return bool(
+        (os.environ.get("DASHSCOPE_API_KEY") or "").strip()
+        or (os.environ.get("MODELSCOPE_API_TOKEN") or "").strip()
+    )
+
+
+def _normalize_bm25_score(rank: int, limit: int) -> float:
+    # OPSearcher BM25 returns ranked items only. Convert rank position into a
+    # stable [0, 100] score for downstream display/ordering.
+    if rank <= 0:
+        return 0.0
+    span = max(int(limit), 1)
+    return round(max(0.0, (span - rank + 1) * 100.0 / span), 2)
+
+
+def _query_tokens(text: str) -> set[str]:
+    return {tok.lower() for tok in re.findall(r"[a-zA-Z0-9_]+", str(text or ""))}
+
+
+def _extract_key_match(query: str, name: str, desc: str, tags: List[str]) -> List[str]:
+    query_tokens = _query_tokens(query)
+    if not query_tokens:
+        return []
+    joined = " ".join([str(name or ""), str(desc or ""), " ".join(tags or [])]).lower()
+    return [token for token in sorted(query_tokens) if token in joined][:5]
+
+
+def _get_op_searcher():
+    global _cached_op_searcher
+    if _cached_op_searcher is not None:
+        return _cached_op_searcher
+    from data_juicer.tools.op_search import OPSearcher
+
+    _cached_op_searcher = OPSearcher(include_formatter=False)
+    return _cached_op_searcher
 
 def _get_content_hash(dj_func_info: list) -> str:
     """Get content hash of dj_func_info using SHA256"""
@@ -172,7 +212,7 @@ def init_dj_func_info():
 
 def refresh_dj_func_info():
     """Refresh dj_func_info during agent runtime (for manual updates)"""
-    global _global_dj_func_info, _cached_vector_store, _cached_tools_info, _cached_content_hash
+    global _global_dj_func_info, _cached_vector_store, _cached_tools_info, _cached_content_hash, _cached_op_searcher
     
     try:
         logging.info("Refreshing dj_func_info...")
@@ -181,6 +221,7 @@ def refresh_dj_func_info():
         _cached_vector_store = None
         _cached_tools_info = None
         _cached_content_hash = None
+        _cached_op_searcher = None
         
         # Reload dj_func_info
         import importlib
@@ -296,6 +337,8 @@ Available tools:
                 "tool_name": tool_name,
                 "description": str(tool_info.get("description", "")).strip(),
                 "relevance_score": tool_info.get("relevance_score"),
+                "score_source": "llm",
+                "operator_type": str(next((t.get("class_type", "") for t in dj_func_info if t.get("class_name") == tool_name), "")).strip(),
                 "key_match": (
                     [
                         str(item).strip()
@@ -371,14 +414,60 @@ def retrieve_ops_vector(user_query, limit=20):
     return tool_names
 
 
-def _trace_step(backend: str, status: str, error: str = "") -> dict:
+def retrieve_ops_bm25_items(user_query: str, limit: int = 20) -> List[Dict[str, Any]]:
+    """Tool retrieval using Data-Juicer OPSearcher BM25."""
+    searcher = _get_op_searcher()
+    ranked = searcher.search_by_bm25(
+        query=user_query,
+        top_k=limit,
+    )
+
+    items: List[Dict[str, Any]] = []
+    for rank, row in enumerate(ranked, start=1):
+        if not isinstance(row, dict):
+            continue
+        tool_name = str(row.get("name", "")).strip()
+        if not tool_name:
+            continue
+        desc = str(row.get("desc", "")).strip()
+        tags = row.get("tags", [])
+        items.append(
+            {
+                "tool_name": tool_name,
+                "description": desc,
+                "relevance_score": _normalize_bm25_score(rank, limit),
+                "score_source": "bm25_rank",
+                "operator_type": str(row.get("type", "")).strip(),
+                "key_match": _extract_key_match(
+                    user_query,
+                    name=tool_name,
+                    desc=desc,
+                    tags=tags if isinstance(tags, list) else [],
+                ),
+            }
+        )
+    return items
+
+
+def retrieve_ops_bm25(user_query: str, limit: int = 20) -> List[str]:
+    return [
+        str(item.get("tool_name", "")).strip()
+        for item in retrieve_ops_bm25_items(user_query, limit=limit)
+        if str(item.get("tool_name", "")).strip()
+    ]
+
+
+def _trace_step(backend: str, status: str, error: str = "", reason: str = "") -> dict:
     payload = {
         "backend": backend,
         "status": status,
     }
     error_text = str(error or "").strip()
+    reason_text = str(reason or "").strip()
     if error_text:
         payload["error"] = error_text
+    if reason_text:
+        payload["reason"] = reason_text
     return payload
 
 
@@ -388,14 +477,26 @@ async def retrieve_ops_with_meta(
     mode: str = "auto",
 ) -> dict:
     """Tool retrieval with source/trace metadata."""
+    api_key_ready = _has_retrieval_api_key()
+
+    def _names_from_items(items: List[Dict[str, Any]]) -> List[str]:
+        return [
+            str(item.get("tool_name", "")).strip()
+            for item in items
+            if str(item.get("tool_name", "")).strip()
+        ]
+
     if mode == "llm":
+        if not api_key_ready:
+            return {
+                "names": [],
+                "source": "",
+                "trace": [_trace_step("llm", "failed", reason="missing_api_key")],
+                "items": [],
+            }
         try:
             items = await retrieve_ops_lm_items(user_query, limit=limit)
-            names = [
-                str(item.get("tool_name", "")).strip()
-                for item in items
-                if str(item.get("tool_name", "")).strip()
-            ]
+            names = _names_from_items(items)
             return {
                 "names": names,
                 "source": "llm" if names else "",
@@ -412,6 +513,13 @@ async def retrieve_ops_with_meta(
             }
 
     if mode == "vector":
+        if not api_key_ready:
+            return {
+                "names": [],
+                "source": "",
+                "trace": [_trace_step("vector", "failed", reason="missing_api_key")],
+                "items": [],
+            }
         try:
             names = retrieve_ops_vector(user_query, limit=limit)
             return {
@@ -429,46 +537,83 @@ async def retrieve_ops_with_meta(
                 "items": [],
             }
 
+    if mode == "bm25":
+        try:
+            items = retrieve_ops_bm25_items(user_query, limit=limit)
+            names = _names_from_items(items)
+            return {
+                "names": names,
+                "source": "bm25" if names else "",
+                "trace": [_trace_step("bm25", "success" if names else "empty")],
+                "items": items,
+            }
+        except Exception as exc:
+            logging.error(f"BM25 retrieval failed: {str(exc)}")
+            return {
+                "names": [],
+                "source": "",
+                "trace": [_trace_step("bm25", "failed", str(exc))],
+                "items": [],
+            }
+
     if mode == "auto":
         trace = []
-        try:
-            items = await retrieve_ops_lm_items(user_query, limit=limit)
-            names = [
-                str(item.get("tool_name", "")).strip()
-                for item in items
-                if str(item.get("tool_name", "")).strip()
-            ]
-            trace.append(_trace_step("llm", "success" if names else "empty"))
-            if names:
-                return {
-                    "names": names,
-                    "source": "llm",
-                    "trace": trace,
-                    "items": items,
-                }
-        except Exception as exc:
-            logging.warning(
-                "LLM retrieval failed in auto mode (%s), falling back to vector retrieval.",
-                str(exc),
-            )
-            trace.append(_trace_step("llm", "failed", str(exc)))
+        if api_key_ready:
+            try:
+                items = await retrieve_ops_lm_items(user_query, limit=limit)
+                names = _names_from_items(items)
+                trace.append(_trace_step("llm", "success" if names else "empty"))
+                if names:
+                    return {
+                        "names": names,
+                        "source": "llm",
+                        "trace": trace,
+                        "items": items,
+                    }
+            except Exception as exc:
+                logging.warning(
+                    "LLM retrieval failed in auto mode (%s), falling back to vector retrieval.",
+                    str(exc),
+                )
+                trace.append(_trace_step("llm", "failed", str(exc)))
+
+            try:
+                names = retrieve_ops_vector(user_query, limit=limit)
+                trace.append(_trace_step("vector", "success" if names else "empty"))
+                if names:
+                    return {
+                        "names": names,
+                        "source": "vector",
+                        "trace": trace,
+                        "items": [],
+                    }
+            except Exception as fallback_exc:
+                logging.error(
+                    "Tool retrieval failed in auto mode, vector fallback failed: %s",
+                    str(fallback_exc),
+                )
+                trace.append(_trace_step("vector", "failed", str(fallback_exc)))
+        else:
+            trace.append(_trace_step("llm", "skipped", reason="missing_api_key"))
+            trace.append(_trace_step("vector", "skipped", reason="missing_api_key"))
 
         try:
-            names = retrieve_ops_vector(user_query, limit=limit)
-            trace.append(_trace_step("vector", "success" if names else "empty"))
-            if names:
+            bm25_items = retrieve_ops_bm25_items(user_query, limit=limit)
+            bm25_names = _names_from_items(bm25_items)
+            trace.append(_trace_step("bm25", "success" if bm25_names else "empty"))
+            if bm25_names:
                 return {
-                    "names": names,
-                    "source": "vector",
+                    "names": bm25_names,
+                    "source": "bm25",
                     "trace": trace,
-                    "items": [],
+                    "items": bm25_items,
                 }
-        except Exception as fallback_exc:
+        except Exception as bm25_exc:
             logging.error(
-                "Tool retrieval failed in auto mode, vector fallback also failed: %s",
-                str(fallback_exc),
+                "Tool retrieval failed in auto mode, bm25 fallback failed: %s",
+                str(bm25_exc),
             )
-            trace.append(_trace_step("vector", "failed", str(fallback_exc)))
+            trace.append(_trace_step("bm25", "failed", str(bm25_exc)))
 
         return {
             "names": [],
@@ -478,7 +623,7 @@ async def retrieve_ops_with_meta(
         }
 
     raise ValueError(
-        f"Invalid mode: {mode}. Must be 'llm', 'vector', or 'auto'",
+        f"Invalid mode: {mode}. Must be 'llm', 'vector', 'bm25', or 'auto'",
     )
 
 
@@ -493,10 +638,11 @@ async def retrieve_ops(
     Args:
         user_query: User query string
         limit: Maximum number of tools to retrieve
-        mode: Retrieval mode - "llm", "vector", or "auto" (default: "auto")
+        mode: Retrieval mode - "llm", "vector", "bm25", or "auto" (default: "auto")
               - "llm": Use language model only
               - "vector": Use vector search only
-              - "auto": Try LLM first, fallback to vector search on failure
+              - "bm25": Use OPSearch BM25 retrieval only
+              - "auto": Try llm -> vector -> bm25 by order
 
     Returns:
         List of tool names

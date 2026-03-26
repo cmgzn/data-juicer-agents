@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import re
 import threading
 from typing import Any, Dict, Iterable, List, Tuple
@@ -98,14 +97,6 @@ def _trace_entry(backend: str, status: str, error: str = "", reason: str = "") -
 
 
 def _safe_async_retrieve(intent: str, top_k: int, mode: str) -> Dict[str, Any]:
-    api_key = os.environ.get("DASHSCOPE_API_KEY") or os.environ.get("MODELSCOPE_API_TOKEN")
-    if not api_key:
-        return {
-            "names": [],
-            "source": "lexical",
-            "trace": [_trace_entry("lexical", "selected", reason="missing_api_key")],
-        }
-
     funcs = _load_op_retrieval_funcs()
     if funcs is None:
         return {
@@ -200,28 +191,31 @@ def _build_candidate_row(
     name: str,
     intent: str,
     info_map: Dict[str, Dict[str, Any]],
-    llm_item: Dict[str, Any] | None = None,
+    retrieval_item: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     row = info_map.get(name, {})
     desc = str(row.get("class_desc", "")).strip()
     args_text = str(row.get("arguments", "")).strip()
     args_lines = [line.strip() for line in args_text.splitlines() if line.strip()]
-    llm_desc = str((llm_item or {}).get("description", "")).strip()
-    llm_score = (llm_item or {}).get("relevance_score")
-    key_match = (llm_item or {}).get("key_match")
+    class_type = str(row.get("class_type", "")).strip()
+    item_desc = str((retrieval_item or {}).get("description", "")).strip()
+    item_score = (retrieval_item or {}).get("relevance_score")
+    item_score_source = str((retrieval_item or {}).get("score_source", "")).strip()
+    item_type = str((retrieval_item or {}).get("operator_type", "")).strip()
+    key_match = (retrieval_item or {}).get("key_match")
     if not isinstance(key_match, list):
         key_match = []
-    if isinstance(llm_score, (int, float)):
-        relevance_score = _to_float_score(float(llm_score))
-        score_source = "llm"
+    if isinstance(item_score, (int, float)):
+        relevance_score = _to_float_score(float(item_score))
+        score_source = item_score_source or "retrieval"
     else:
         relevance_score = _keyword_score(intent, name, desc)
         score_source = "keyword"
     return {
         "rank": rank,
         "operator_name": name,
-        "operator_type": _op_type(name),
-        "description": llm_desc or desc,
+        "operator_type": item_type or class_type or _op_type(name),
+        "description": item_desc or desc,
         "relevance_score": relevance_score,
         "score_source": score_source,
         "key_match": [str(item).strip() for item in key_match if str(item).strip()],
@@ -264,20 +258,28 @@ def retrieve_operator_candidates(
     retrieved_names = list(retrieve_meta.get("names", []))
     retrieval_source = str(retrieve_meta.get("source", "")).strip()
     retrieval_trace = list(retrieve_meta.get("trace", []))
-    llm_item_map = {}
-    if retrieval_source == "llm":
-        for item in retrieve_meta.get("items", []):
-            if not isinstance(item, dict):
-                continue
-            tool_name = str(item.get("tool_name", "")).strip()
-            if tool_name:
-                llm_item_map[tool_name] = item
+    retrieval_item_map = {}
+    for item in retrieve_meta.get("items", []):
+        if not isinstance(item, dict):
+            continue
+        tool_name = str(item.get("tool_name", "")).strip()
+        if not tool_name:
+            continue
+        if retrieval_source and not str(item.get("score_source", "")).strip():
+            item = dict(item)
+            item["score_source"] = retrieval_source
+        retrieval_item_map[tool_name] = item
     if not retrieved_names:
         retrieved_names = _lexical_fallback(intent, info_rows=info_rows, top_k=top_k)
         retrieval_source = "lexical"
         retrieval_trace.append(_trace_entry("lexical", "selected", reason="fallback_after_remote_empty_or_failed"))
 
     available_ops = get_available_operator_names()
+    normalized_item_map: Dict[str, Dict[str, Any]] = {}
+    for raw_name, item in retrieval_item_map.items():
+        resolved = resolve_operator_name(raw_name, available_ops=available_ops)
+        if resolved and resolved not in normalized_item_map:
+            normalized_item_map[resolved] = item
     normalized_names: List[str] = []
     seen = set()
     for raw_name in retrieved_names:
@@ -295,7 +297,7 @@ def retrieve_operator_candidates(
             name,
             intent=intent,
             info_map=info_map,
-            llm_item=llm_item_map.get(name),
+            retrieval_item=normalized_item_map.get(name) or retrieval_item_map.get(name),
         )
         for idx, name in enumerate(normalized_names[:top_k], start=1)
     ]
