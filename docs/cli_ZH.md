@@ -76,13 +76,14 @@ djx apply --plan <plan.yaml> [--yes] [--dry-run] [--timeout 300]
 ## `djx retrieve`
 
 ```bash
-djx retrieve "<intent>" [--dataset <path>] [--top-k 10] [--mode auto|llm|vector] [--json]
+djx retrieve "<intent>" [--dataset <path>] [--top-k 10] [--mode auto|llm|vector|bm25] [--json]
 ```
 
 返回：
 - 候选算子排序
 - 检索来源、trace 与备注
 - 输出 payload 不包含 dataset profile
+- `auto` 顺序为 `llm -> vector -> bm25 -> lexical`（无 API Key 时为 `bm25 -> lexical`）
 
 ## `djx dev`
 

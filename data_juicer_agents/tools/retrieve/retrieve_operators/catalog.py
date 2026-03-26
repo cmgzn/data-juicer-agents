@@ -12,6 +12,7 @@ for i, op in enumerate(all_ops):
         "index": i,
         "class_name": op["name"],
         "class_desc": op["desc"],
+        "class_type": op.get("type", ""),
     }
     param_desc = op["param_desc"]
     param_desc_map = {}

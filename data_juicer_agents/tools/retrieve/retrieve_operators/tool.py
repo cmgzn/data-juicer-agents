@@ -28,6 +28,7 @@ def _retrieve_operators(_ctx: ToolContext, args: RetrieveOperatorsInput) -> Tool
             top_k=max(to_int(args.top_k, 10), 1),
             mode=(args.mode.strip() or "auto"),
             dataset_path=(args.dataset_path.strip() or None),
+            op_type=(args.op_type.strip() or None),
         )
     except Exception as exc:
         return ToolResult.failure(

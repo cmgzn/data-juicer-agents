@@ -3,14 +3,27 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
 class RetrieveOperatorsInput(BaseModel):
     intent: str = Field(description="Natural-language retrieval intent.")
     top_k: int = Field(default=10, ge=1, description="Maximum number of operator candidates to return.")
-    mode: str = Field(default="auto", description="Retrieval mode: auto, llm, or vector.")
+    mode: Literal["auto", "llm", "vector", "bm25"] = Field(
+        default="auto",
+        description="Retrieval mode: auto, llm, vector, or bm25.",
+    )
     dataset_path: str = Field(default="", description="Optional dataset path used as explicit retrieval context.")
+    op_type: str = Field(
+        default="",
+        description=(
+            "Optional operator type filter (e.g. 'filter', 'mapper', 'deduplicator', "
+            "'selector', 'grouper', 'aggregator', 'pipeline'). When provided, only operators of "
+            "the specified type are considered during retrieval."
+        ),
+    )
 
 
 class GenericOutput(BaseModel):
