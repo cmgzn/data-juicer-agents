@@ -35,6 +35,7 @@ def test_session_toolkit_selects_explicit_tools_without_session_tags():
     assert {spec.name for spec in specs} == all_names
     assert all("session" not in spec.tags for spec in specs)
     assert "inspect_dataset" in names
+    assert "list_dataset_advanced_config" in names
     assert "retrieve_operators" in names
     assert "build_dataset_spec" in names
     assert "build_process_spec" in names

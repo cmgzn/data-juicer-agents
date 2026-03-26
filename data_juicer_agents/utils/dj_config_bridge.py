@@ -17,6 +17,8 @@ Field classification lists:
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
+from .dataset_config_contract import DATASET_FIELDS
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -33,31 +35,7 @@ agent_managed_fields = [
 ]
 
 # Dataset-related field names
-dataset_fields = [
-    "dataset_path",
-    "dataset",
-    "generated_dataset_config",
-    "validators",
-    "load_dataset_kwargs",
-    "export_path",
-    "export_type",
-    "export_shard_size",
-    "export_in_parallel",
-    "export_extra_args",
-    "export_aws_credentials",
-    "text_keys",
-    "image_key",
-    "image_bytes_key",
-    "image_special_token",
-    "audio_key",
-    "audio_special_token",
-    "video_key",
-    "video_special_token",
-    "eoc_special_token",
-    "suffixes",
-    "keep_stats_in_res_ds",
-    "keep_hashes_in_res_ds",
-]
+dataset_fields = list(DATASET_FIELDS)
 
 # System/runtime-related field names (executor, parallelism, caching, etc.)
 system_fields = [

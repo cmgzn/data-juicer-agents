@@ -39,7 +39,6 @@ class PlannerCore:
             name
             for name, value in {
                 "user_intent": context.user_intent,
-                "dataset_path": context.dataset_path,
                 "export_path": context.export_path,
             }.items()
             if not value
@@ -59,7 +58,8 @@ class PlannerCore:
         recipe: Dict[str, Any] = {}
 
         # --- dataset IO fields ---
-        recipe["dataset_path"] = normalized_dataset_spec.io.dataset_path
+        if normalized_dataset_spec.io.dataset_path:
+            recipe["dataset_path"] = normalized_dataset_spec.io.dataset_path
         recipe["export_path"] = normalized_dataset_spec.io.export_path
         if normalized_dataset_spec.io.dataset:
             recipe["dataset"] = dict(normalized_dataset_spec.io.dataset)

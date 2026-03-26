@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from data_juicer_agents.utils.dataset_config_contract import source_priority_text
+
 from .normalize import normalize_optional_text, normalize_params, normalize_string_list
 from .schema import DatasetBindingSpec, DatasetSpec, _ALLOWED_MODALITIES
 
@@ -178,8 +180,8 @@ def _dataset_source_priority_warning(source_count: int) -> str | None:
     if source_count <= 1:
         return None
     return (
-        "multiple dataset sources are present; current implementation is local-path-first and will "
-        "follow Data-Juicer source priority generated_dataset_config > dataset_path > dataset"
+        "multiple dataset sources are present; use one source mode only. "
+        f"If multiple are still provided, Data-Juicer priority is {source_priority_text()}"
     )
 
 

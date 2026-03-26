@@ -2,14 +2,14 @@
 """Context-oriented tools."""
 
 from .inspect_dataset import InspectDatasetInput, inspect_dataset_schema
-from .list_dataset_load_strategies import (
-    ListDatasetLoadStrategiesInput,
-    list_dataset_load_strategies,
+from .list_dataset_advanced_config import (
+    ListDatasetAdvancedConfigInput,
+    list_dataset_advanced_config,
 )
 from .list_system_config import ListSystemConfigInput, list_system_config
 from .registry import (
     INSPECT_DATASET,
-    LIST_DATASET_LOAD_STRATEGIES,
+    LIST_DATASET_ADVANCED_CONFIG,
     LIST_SYSTEM_CONFIG,
     TOOL_SPECS,
 )
@@ -17,12 +17,12 @@ from .registry import (
 __all__ = [
     "INSPECT_DATASET",
     "InspectDatasetInput",
-    "LIST_DATASET_LOAD_STRATEGIES",
-    "ListDatasetLoadStrategiesInput",
+    "LIST_DATASET_ADVANCED_CONFIG",
+    "ListDatasetAdvancedConfigInput",
     "LIST_SYSTEM_CONFIG",
     "ListSystemConfigInput",
     "TOOL_SPECS",
+    "list_dataset_advanced_config",
     "inspect_dataset_schema",
-    "list_dataset_load_strategies",
     "list_system_config",
 ]
