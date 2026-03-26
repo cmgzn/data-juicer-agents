@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=34d13042" />
     <link rel="stylesheet" type="text/css" href="../../_static/ask-ai-widget.css?v=028e49fc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/star-widget.css?v=d18535f6" />
   
   <!-- So that users can add custom icons -->
   <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -41,6 +42,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script>window.JUICER_API_URL = 'https://datajuicer.online:443';</script>
+    <script>window.GITHUB_OAUTH_CLIENT_ID = 'Ov23livcq9MsLVsEsRhP';window.STAR_REPO_OWNER = 'cmgzn';window.STAR_REPO_NAME = 'data-juicer-agents';window.STAR_API_BASE_URL = 'https://cmgzn-star-oauth-backend.hf.space';</script>
     <script src="../../_static/documentation_options.js?v=91bfbbb6"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
@@ -52,6 +54,7 @@
     <script src="../../_static/switcher-mobile.js?v=07875724"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="../../_static/ask-ai-widget.js?v=bd1ac865"></script>
+    <script src="../../_static/star-widget.js?v=bb7e9f2e"></script>
     <link rel="icon" href="../../_static/icon.png"/>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -207,6 +210,17 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
+      
+        <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">一键星标</span>
+</a>
+</div>
       
         <div class="navbar-item">
 
@@ -384,6 +398,17 @@
 </ul></div>
         
           <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">一键星标</span>
+</a>
+</div>
+        
+          <div class="navbar-item">
 
 <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
   <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="亮色"></i>
@@ -517,17 +542,19 @@
                   
   <h1>data_juicer_agents.cli 源代码</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;CLI entrypoint for Data-Juicer-Agents v0.1.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;CLI entrypoint for the ``djx`` command.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents.commands.apply_cmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_apply</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents.commands.dev_cmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_dev</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents.commands.plan_cmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_plan</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents.commands.retrieve_cmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_retrieve</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">data_juicer_agents.commands.tool_cmd</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_tool</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_output_level_args</span><span class="p">(</span>
@@ -569,7 +596,12 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">build_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">prog</span><span class="o">=</span><span class="s2">&quot;djx&quot;</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Agentic CLI for Data-Juicer workflows (v0.1)&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Agentic CLI for Data-Juicer workflows&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--version&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;version&quot;</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;%(prog)s </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">_add_output_level_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">set_default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">output_parent</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">add_help</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -672,6 +704,63 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run an optional local dj-process smoke check using custom_operator_paths&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">dev</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">handler</span><span class="o">=</span><span class="n">run_dev</span><span class="p">)</span>
+
+    <span class="n">tool</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;tool&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Inspect or execute atomic built-in tools&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">output_parent</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">tool_sub</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tool_action&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">tool_list</span> <span class="o">=</span> <span class="n">tool_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;list&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List all registered tools&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">output_parent</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">tool_list</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--tag&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Optional tag filter; may be repeated&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tool_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">handler</span><span class="o">=</span><span class="n">run_tool</span><span class="p">)</span>
+
+    <span class="n">tool_schema</span> <span class="o">=</span> <span class="n">tool_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;schema&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show tool metadata and input schema&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">output_parent</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">tool_schema</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;tool_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Registered tool name&quot;</span><span class="p">)</span>
+    <span class="n">tool_schema</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">handler</span><span class="o">=</span><span class="n">run_tool</span><span class="p">)</span>
+
+    <span class="n">tool_run</span> <span class="o">=</span> <span class="n">tool_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;run&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Execute a tool with JSON input&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">output_parent</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">tool_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;tool_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Registered tool name&quot;</span><span class="p">)</span>
+    <span class="n">input_group</span> <span class="o">=</span> <span class="n">tool_run</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">input_group</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--input-json&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Inline JSON object input for the tool&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">input_group</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--input-file&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to a JSON file containing the tool input object&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tool_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--working-dir&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Working directory used to build ToolContext&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tool_run</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--yes&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Explicitly confirm running write/execute tools&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tool_run</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">handler</span><span class="o">=</span><span class="n">run_tool</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">parser</span></div>
 

@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=34d13042" />
     <link rel="stylesheet" type="text/css" href="../_static/ask-ai-widget.css?v=028e49fc" />
+    <link rel="stylesheet" type="text/css" href="../_static/star-widget.css?v=d18535f6" />
   
   <!-- So that users can add custom icons -->
   <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -41,6 +42,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script>window.JUICER_API_URL = 'https://datajuicer.online:443';</script>
+    <script>window.GITHUB_OAUTH_CLIENT_ID = 'Ov23livcq9MsLVsEsRhP';window.STAR_REPO_OWNER = 'cmgzn';window.STAR_REPO_NAME = 'data-juicer-agents';window.STAR_API_BASE_URL = 'https://cmgzn-star-oauth-backend.hf.space';</script>
     <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
@@ -51,6 +53,7 @@
     <script src="../_static/switcher-mobile.js?v=07875724"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="../_static/ask-ai-widget.js?v=bd1ac865"></script>
+    <script src="../_static/star-widget.js?v=bb7e9f2e"></script>
     <link rel="icon" href="../_static/icon.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -206,6 +209,17 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
+      
+        <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">Star me!</span>
+</a>
+</div>
       
         <div class="navbar-item">
 
@@ -383,6 +397,17 @@
 </ul></div>
         
           <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">Star me!</span>
+</a>
+</div>
+        
+          <div class="navbar-item">
 
 <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
   <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
@@ -525,6 +550,7 @@
 <li><a href="data_juicer_agents/commands/output_control.html">data_juicer_agents.commands.output_control</a></li>
 <li><a href="data_juicer_agents/commands/plan_cmd.html">data_juicer_agents.commands.plan_cmd</a></li>
 <li><a href="data_juicer_agents/commands/retrieve_cmd.html">data_juicer_agents.commands.retrieve_cmd</a></li>
+<li><a href="data_juicer_agents/commands/tool_cmd.html">data_juicer_agents.commands.tool_cmd</a></li>
 <li><a href="data_juicer_agents/core/tool/catalog.html">data_juicer_agents.core.tool.catalog</a></li>
 <li><a href="data_juicer_agents/core/tool/contracts.html">data_juicer_agents.core.tool.contracts</a></li>
 <li><a href="data_juicer_agents/core/tool/registry.html">data_juicer_agents.core.tool.registry</a></li>
@@ -533,6 +559,8 @@
 <li><a href="data_juicer_agents/tools/apply/apply_recipe/logic.html">data_juicer_agents.tools.apply.apply_recipe.logic</a></li>
 <li><a href="data_juicer_agents/tools/context/inspect_dataset/input.html">data_juicer_agents.tools.context.inspect_dataset.input</a></li>
 <li><a href="data_juicer_agents/tools/context/inspect_dataset/logic.html">data_juicer_agents.tools.context.inspect_dataset.logic</a></li>
+<li><a href="data_juicer_agents/tools/context/list_system_config/input.html">data_juicer_agents.tools.context.list_system_config.input</a></li>
+<li><a href="data_juicer_agents/tools/context/list_system_config/logic.html">data_juicer_agents.tools.context.list_system_config.logic</a></li>
 <li><a href="data_juicer_agents/tools/dev/develop_operator/input.html">data_juicer_agents.tools.dev.develop_operator.input</a></li>
 <li><a href="data_juicer_agents/tools/dev/develop_operator/logic.html">data_juicer_agents.tools.dev.develop_operator.logic</a></li>
 <li><a href="data_juicer_agents/tools/dev/develop_operator/scaffold.html">data_juicer_agents.tools.dev.develop_operator.scaffold</a></li>
@@ -578,6 +606,7 @@
 <li><a href="data_juicer_agents/tui/models.html">data_juicer_agents.tui.models</a></li>
 <li><a href="data_juicer_agents/tui/noise_filter.html">data_juicer_agents.tui.noise_filter</a></li>
 <li><a href="data_juicer_agents/utils/agentscope_logging.html">data_juicer_agents.utils.agentscope_logging</a></li>
+<li><a href="data_juicer_agents/utils/dj_config_bridge.html">data_juicer_agents.utils.dj_config_bridge</a></li>
 <li><a href="data_juicer_agents/utils/llm_gateway.html">data_juicer_agents.utils.llm_gateway</a></li>
 <li><a href="data_juicer_agents/utils/runtime_helpers.html">data_juicer_agents.utils.runtime_helpers</a></li>
 <li><a href="data_juicer_agents/utils/terminal_input.html">data_juicer_agents.utils.terminal_input</a></li>

@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=34d13042" />
     <link rel="stylesheet" type="text/css" href="_static/ask-ai-widget.css?v=028e49fc" />
+    <link rel="stylesheet" type="text/css" href="_static/star-widget.css?v=d18535f6" />
   
   <!-- So that users can add custom icons -->
   <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
@@ -41,6 +42,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script>window.JUICER_API_URL = 'https://datajuicer.online:443';</script>
+    <script>window.GITHUB_OAUTH_CLIENT_ID = 'Ov23livcq9MsLVsEsRhP';window.STAR_REPO_OWNER = 'cmgzn';window.STAR_REPO_NAME = 'data-juicer-agents';window.STAR_API_BASE_URL = 'https://cmgzn-star-oauth-backend.hf.space';</script>
     <script src="_static/documentation_options.js?v=8a448e45"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
@@ -51,6 +53,7 @@
     <script src="_static/switcher-mobile.js?v=07875724"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="_static/ask-ai-widget.js?v=bd1ac865"></script>
+    <script src="_static/star-widget.js?v=bb7e9f2e"></script>
     <link rel="icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
@@ -206,6 +209,17 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
+      
+        <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">Star me!</span>
+</a>
+</div>
       
         <div class="navbar-item">
 
@@ -381,6 +395,17 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
+        
+          <div class="navbar-item">
+<a id="star-navbar-btn"
+   class="star-navbar-btn"
+   href="#"
+   role="button"
+   aria-label="Star this repo on GitHub">
+  <span class="star-navbar-btn__icon" aria-hidden="true">⭐</span>
+  <span class="star-navbar-btn__label">Star me!</span>
+</a>
+</div>
         
           <div class="navbar-item">
 
@@ -587,8 +612,6 @@
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetSpec.__init__">(data_juicer_agents.tools.plan.DatasetSpec method)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.OperatorStep.__init__">(data_juicer_agents.tools.plan.OperatorStep method)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanContext.__init__">(data_juicer_agents.tools.plan.PlanContext method)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.__init__">(data_juicer_agents.tools.plan.PlanModel method)</a>
@@ -610,6 +633,8 @@
         <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.TuiState.__init__">(data_juicer_agents.tui.models.TuiState method)</a>
 </li>
         <li><a href="api/data_juicer_agents.tui.noise_filter.html#data_juicer_agents.tui.noise_filter.FilteredStderr.__init__">(data_juicer_agents.tui.noise_filter.FilteredStderr method)</a>
+</li>
+        <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.__init__">(data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
 </li>
         <li><a href="api/data_juicer_agents.utils.terminal_input.html#data_juicer_agents.utils.terminal_input.TerminalLineReader.__init__">(data_juicer_agents.utils.terminal_input.TerminalLineReader method)</a>
 </li>
@@ -714,14 +739,8 @@
         <li><a href="api/data_juicer_agents.tools.plan.assemble_plan.input.html#data_juicer_agents.tools.plan.assemble_plan.input.AssemblePlanInput">(class in data_juicer_agents.tools.plan.assemble_plan.input)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.audio_key">audio_key (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.audio_key">(data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.audio_key">audio_key (data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.audio_key">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.audio_key_hint">audio_key_hint (data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 
       <ul>
@@ -848,6 +867,8 @@
         <li><a href="api/data_juicer_agents.tools.process.execute_python_code.input.html#data_juicer_agents.tools.process.execute_python_code.input.ExecutePythonCodeInput.code">(data_juicer_agents.tools.process.execute_python_code.input.ExecutePythonCodeInput attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.coerce_fields">coerce_fields() (in module data_juicer_agents.utils.dj_config_bridge)</a>
+</li>
       <li><a href="api/data_juicer_agents.capabilities.apply.service.html#data_juicer_agents.capabilities.apply.service.ApplyResult.command">command (data_juicer_agents.capabilities.apply.service.ApplyResult attribute)</a>
 
       <ul>
@@ -870,14 +891,14 @@
         <li><a href="api/data_juicer_agents.tools.apply.html#data_juicer_agents.tools.apply.ApplyRecipeInput.confirm">(data_juicer_agents.tools.apply.ApplyRecipeInput attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.core.tool.contracts.html#data_juicer_agents.core.tool.contracts.ToolSpec.confirmation">confirmation (data_juicer_agents.core.tool.contracts.ToolSpec attribute)</a>
 
       <ul>
         <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.ToolSpec.confirmation">(data_juicer_agents.core.tool.ToolSpec attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tui.controller.html#data_juicer_agents.tui.controller.SessionController.consume_turn_result">consume_turn_result() (data_juicer_agents.tui.controller.SessionController method)</a>
 </li>
       <li><a href="api/data_juicer_agents.tools.files.insert_text_file.input.html#data_juicer_agents.tools.files.insert_text_file.input.InsertTextFileInput.content">content (data_juicer_agents.tools.files.insert_text_file.input.InsertTextFileInput attribute)</a>
@@ -903,8 +924,6 @@
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.SessionState.custom_operator_paths">custom_operator_paths (data_juicer_agents.capabilities.session.runtime.SessionState attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.custom_operator_paths">(data_juicer_agents.PlanModel attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.html#data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput.custom_operator_paths">(data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.input.html#data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput.custom_operator_paths">(data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput attribute)</a>
@@ -912,8 +931,6 @@
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildSystemSpecInput.custom_operator_paths">(data_juicer_agents.tools.plan.BuildSystemSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanContext.custom_operator_paths">(data_juicer_agents.tools.plan.PlanContext attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.custom_operator_paths">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.custom_operator_paths">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
 </li>
@@ -1101,6 +1118,13 @@
 </li>
       </ul></li>
       <li>
+    data_juicer_agents.commands.tool_cmd
+
+      <ul>
+        <li><a href="api/data_juicer_agents.commands.tool_cmd.html#module-data_juicer_agents.commands.tool_cmd">module</a>
+</li>
+      </ul></li>
+      <li>
     data_juicer_agents.core
 
       <ul>
@@ -1224,6 +1248,34 @@
 
       <ul>
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.tool.html#module-data_juicer_agents.tools.context.inspect_dataset.tool">module</a>
+</li>
+      </ul></li>
+      <li>
+    data_juicer_agents.tools.context.list_system_config
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#module-data_juicer_agents.tools.context.list_system_config">module</a>
+</li>
+      </ul></li>
+      <li>
+    data_juicer_agents.tools.context.list_system_config.input
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#module-data_juicer_agents.tools.context.list_system_config.input">module</a>
+</li>
+      </ul></li>
+      <li>
+    data_juicer_agents.tools.context.list_system_config.logic
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.logic.html#module-data_juicer_agents.tools.context.list_system_config.logic">module</a>
+</li>
+      </ul></li>
+      <li>
+    data_juicer_agents.tools.context.list_system_config.tool
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.tool.html#module-data_juicer_agents.tools.context.list_system_config.tool">module</a>
 </li>
       </ul></li>
       <li>
@@ -1478,6 +1530,8 @@
         <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.html#module-data_juicer_agents.tools.plan.build_system_spec">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     data_juicer_agents.tools.plan.build_system_spec.input
 
@@ -1499,8 +1553,6 @@
         <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.tool.html#module-data_juicer_agents.tools.plan.build_system_spec.tool">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     data_juicer_agents.tools.plan.plan_save
 
@@ -1838,6 +1890,13 @@
 </li>
       </ul></li>
       <li>
+    data_juicer_agents.utils.dj_config_bridge
+
+      <ul>
+        <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#module-data_juicer_agents.utils.dj_config_bridge">module</a>
+</li>
+      </ul></li>
+      <li>
     data_juicer_agents.utils.llm_gateway
 
       <ul>
@@ -1858,19 +1917,11 @@
         <li><a href="api/data_juicer_agents.utils.terminal_input.html#module-data_juicer_agents.utils.terminal_input">module</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.dataset">dataset (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetIOSpec.dataset">(data_juicer_agents.tools.plan.DatasetIOSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetIOSpec.dataset">dataset (data_juicer_agents.tools.plan.DatasetIOSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.dataset">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.SessionState.dataset_path">dataset_path (data_juicer_agents.capabilities.session.runtime.SessionState attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.dataset_path">(data_juicer_agents.PlanModel attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.input.html#data_juicer_agents.tools.context.inspect_dataset.input.InspectDatasetInput.dataset_path">(data_juicer_agents.tools.context.inspect_dataset.input.InspectDatasetInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.html#data_juicer_agents.tools.context.inspect_dataset.InspectDatasetInput.dataset_path">(data_juicer_agents.tools.context.inspect_dataset.InspectDatasetInput attribute)</a>
@@ -1886,8 +1937,6 @@
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetIOSpec.dataset_path">(data_juicer_agents.tools.plan.DatasetIOSpec attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanContext.dataset_path">(data_juicer_agents.tools.plan.PlanContext attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.dataset_path">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.input.html#data_juicer_agents.tools.retrieve.retrieve_operators.input.RetrieveOperatorsInput.dataset_path">(data_juicer_agents.tools.retrieve.retrieve_operators.input.RetrieveOperatorsInput attribute)</a>
 </li>
@@ -1970,6 +2019,8 @@
         <li><a href="api/data_juicer_agents.tools.dev.develop_operator.logic.html#data_juicer_agents.tools.dev.develop_operator.logic.DevUseCase">(class in data_juicer_agents.tools.dev.develop_operator.logic)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge">DJConfigBridge (class in data_juicer_agents.utils.dj_config_bridge)</a>
+</li>
       <li><a href="api/data_juicer_agents.capabilities.html#data_juicer_agents.capabilities.DJSessionAgent">DJSessionAgent (class in data_juicer_agents.capabilities)</a>
 
       <ul>
@@ -2156,10 +2207,12 @@
         <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.ToolSpec.executor">(data_juicer_agents.core.tool.ToolSpec attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.executor_type">executor_type (data_juicer_agents.PlanModel attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.html#data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput.executor_type">executor_type (data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.executor_type">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
+        <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.input.html#data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput.executor_type">(data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildSystemSpecInput.executor_type">(data_juicer_agents.tools.plan.BuildSystemSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.executor_type">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
 </li>
@@ -2167,8 +2220,6 @@
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.SessionState.export_path">export_path (data_juicer_agents.capabilities.session.runtime.SessionState attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.export_path">(data_juicer_agents.PlanModel attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.export_path">(data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.input.html#data_juicer_agents.tools.plan.build_dataset_spec.input.BuildDatasetSpecInput.export_path">(data_juicer_agents.tools.plan.build_dataset_spec.input.BuildDatasetSpecInput attribute)</a>
@@ -2179,9 +2230,9 @@
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanContext.export_path">(data_juicer_agents.tools.plan.PlanContext attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.export_path">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.extract_agent_managed_config">extract_agent_managed_config() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
       <li><a href="api/data_juicer_agents.tools.retrieve.html#data_juicer_agents.tools.retrieve.extract_candidate_names">extract_candidate_names() (in module data_juicer_agents.tools.retrieve)</a>
 
       <ul>
@@ -2190,6 +2241,12 @@
         <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.logic.html#data_juicer_agents.tools.retrieve.retrieve_operators.logic.extract_candidate_names">(in module data_juicer_agents.tools.retrieve.retrieve_operators.logic)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.extract_dataset_config">extract_dataset_config() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.extract_process_config">extract_process_config() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.extract_system_config">extract_system_config() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -2222,6 +2279,14 @@
 </li>
       <li><a href="api/data_juicer_agents.utils.agentscope_logging.html#data_juicer_agents.utils.agentscope_logging.IgnoreThinkingBlockWarningFilter.filter">filter() (data_juicer_agents.utils.agentscope_logging.IgnoreThinkingBlockWarningFilter method)</a>
 </li>
+      <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput.filter_prefix">filter_prefix (data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput attribute)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput.filter_prefix">(data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.ListSystemConfigInput.filter_prefix">(data_juicer_agents.tools.context.ListSystemConfigInput attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tui.noise_filter.html#data_juicer_agents.tui.noise_filter.FilteredStderr">FilteredStderr (class in data_juicer_agents.tui.noise_filter)</a>
@@ -2246,6 +2311,8 @@
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.from_dict">(data_juicer_agents.tools.plan.SystemSpec class method)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.from_dj_config">from_dj_config() (data_juicer_agents.tools.plan.SystemSpec class method)</a>
+</li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.from_retrieve">from_retrieve (data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
 
       <ul>
@@ -2280,14 +2347,8 @@
         <li><a href="api/data_juicer_agents.capabilities.html#data_juicer_agents.capabilities.PlanOrchestrator.generate_plan">(data_juicer_agents.capabilities.PlanOrchestrator method)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.generated_dataset_config">generated_dataset_config (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetIOSpec.generated_dataset_config">(data_juicer_agents.tools.plan.DatasetIOSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetIOSpec.generated_dataset_config">generated_dataset_config (data_juicer_agents.tools.plan.DatasetIOSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.generated_dataset_config">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.scaffold.html#data_juicer_agents.tools.dev.develop_operator.scaffold.ScaffoldResult.generated_files">generated_files (data_juicer_agents.tools.dev.develop_operator.scaffold.ScaffoldResult attribute)</a>
 
       <ul>
@@ -2351,6 +2412,8 @@
       <ul>
         <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.ToolRegistry.get">(data_juicer_agents.core.tool.ToolRegistry method)</a>
 </li>
+        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.get">(data_juicer_agents.tools.plan.SystemSpec method)</a>
+</li>
       </ul></li>
       <li><a href="api/data_juicer_agents.tools.retrieve.html#data_juicer_agents.tools.retrieve.get_available_operator_names">get_available_operator_names() (in module data_juicer_agents.tools.retrieve)</a>
 
@@ -2360,7 +2423,15 @@
         <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.operator_registry.html#data_juicer_agents.tools.retrieve.retrieve_operators.operator_registry.get_available_operator_names">(in module data_juicer_agents.tools.retrieve.retrieve_operators.operator_registry)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.get_default_config">get_default_config() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.get_dj_config_bridge">get_dj_config_bridge() (in module data_juicer_agents.utils.dj_config_bridge)</a>
+</li>
       <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.backend.html#data_juicer_agents.tools.retrieve.retrieve_operators.backend.get_dj_func_info">get_dj_func_info() (in module data_juicer_agents.tools.retrieve.retrieve_operators.backend)</a>
+</li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.get_op_valid_params">get_op_valid_params() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
+</li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.get_param_descriptions">get_param_descriptions() (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
 </li>
       <li><a href="api/data_juicer_agents.capabilities.session.toolkit.html#data_juicer_agents.capabilities.session.toolkit.get_session_tool_specs">get_session_tool_specs() (in module data_juicer_agents.capabilities.session.toolkit)</a>
 </li>
@@ -2412,14 +2483,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.utils.agentscope_logging.html#data_juicer_agents.utils.agentscope_logging.IgnoreThinkingBlockWarningFilter">IgnoreThinkingBlockWarningFilter (class in data_juicer_agents.utils.agentscope_logging)</a>
 </li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.image_bytes_key">image_bytes_key (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.image_bytes_key">(data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.image_bytes_key">image_bytes_key (data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.image_bytes_key">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.image_bytes_key_hint">image_bytes_key_hint (data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 
       <ul>
@@ -2428,20 +2493,22 @@
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildDatasetSpecInput.image_bytes_key_hint">(data_juicer_agents.tools.plan.BuildDatasetSpecInput attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.image_key">image_key (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.image_key">(data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.image_key">image_key (data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.image_key">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.image_key_hint">image_key_hint (data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 
       <ul>
         <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.input.html#data_juicer_agents.tools.plan.build_dataset_spec.input.BuildDatasetSpecInput.image_key_hint">(data_juicer_agents.tools.plan.build_dataset_spec.input.BuildDatasetSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildDatasetSpecInput.image_key_hint">(data_juicer_agents.tools.plan.BuildDatasetSpecInput attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput.include_descriptions">include_descriptions (data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput attribute)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput.include_descriptions">(data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.ListSystemConfigInput.include_descriptions">(data_juicer_agents.tools.context.ListSystemConfigInput attribute)</a>
 </li>
       </ul></li>
       <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.backend.html#data_juicer_agents.tools.retrieve.retrieve_operators.backend.init_dj_func_info">init_dj_func_info() (in module data_juicer_agents.tools.retrieve.retrieve_operators.backend)</a>
@@ -2580,6 +2647,14 @@
         <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.ToolRegistry.list">(data_juicer_agents.core.tool.ToolRegistry method)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.list_system_config">list_system_config() (in module data_juicer_agents.tools.context)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#data_juicer_agents.tools.context.list_system_config.list_system_config">(in module data_juicer_agents.tools.context.list_system_config)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.logic.html#data_juicer_agents.tools.context.list_system_config.logic.list_system_config">(in module data_juicer_agents.tools.context.list_system_config.logic)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.list_tool_specs">list_tool_specs() (in module data_juicer_agents.core.tool)</a>
@@ -2592,6 +2667,14 @@
 
       <ul>
         <li><a href="api/data_juicer_agents.core.tool.html#data_juicer_agents.core.tool.ToolRegistry.list_tools">(data_juicer_agents.core.tool.ToolRegistry method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.ListSystemConfigInput">ListSystemConfigInput (class in data_juicer_agents.tools.context)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput">(class in data_juicer_agents.tools.context.list_system_config)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput">(class in data_juicer_agents.tools.context.list_system_config.input)</a>
 </li>
       </ul></li>
       <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.TuiState.llm_base_url">llm_base_url (data_juicer_agents.tui.models.TuiState attribute)</a>
@@ -2670,6 +2753,12 @@
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.html#data_juicer_agents.tools.context.inspect_dataset.InspectDatasetInput.model_config">(data_juicer_agents.tools.context.inspect_dataset.InspectDatasetInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.InspectDatasetInput.model_config">(data_juicer_agents.tools.context.InspectDatasetInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput.model_config">(data_juicer_agents.tools.context.list_system_config.input.ListSystemConfigInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput.model_config">(data_juicer_agents.tools.context.list_system_config.ListSystemConfigInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.html#data_juicer_agents.tools.context.ListSystemConfigInput.model_config">(data_juicer_agents.tools.context.ListSystemConfigInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.model_config">(data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
 </li>
@@ -2854,6 +2943,8 @@
 </li>
         <li><a href="api/data_juicer_agents.commands.retrieve_cmd.html#module-data_juicer_agents.commands.retrieve_cmd">data_juicer_agents.commands.retrieve_cmd</a>
 </li>
+        <li><a href="api/data_juicer_agents.commands.tool_cmd.html#module-data_juicer_agents.commands.tool_cmd">data_juicer_agents.commands.tool_cmd</a>
+</li>
         <li><a href="api/data_juicer_agents.core.html#module-data_juicer_agents.core">data_juicer_agents.core</a>
 </li>
         <li><a href="api/data_juicer_agents.core.tool.html#module-data_juicer_agents.core.tool">data_juicer_agents.core.tool</a>
@@ -2889,6 +2980,14 @@
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.logic.html#module-data_juicer_agents.tools.context.inspect_dataset.logic">data_juicer_agents.tools.context.inspect_dataset.logic</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.context.inspect_dataset.tool.html#module-data_juicer_agents.tools.context.inspect_dataset.tool">data_juicer_agents.tools.context.inspect_dataset.tool</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.html#module-data_juicer_agents.tools.context.list_system_config">data_juicer_agents.tools.context.list_system_config</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.input.html#module-data_juicer_agents.tools.context.list_system_config.input">data_juicer_agents.tools.context.list_system_config.input</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.logic.html#module-data_juicer_agents.tools.context.list_system_config.logic">data_juicer_agents.tools.context.list_system_config.logic</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.context.list_system_config.tool.html#module-data_juicer_agents.tools.context.list_system_config.tool">data_juicer_agents.tools.context.list_system_config.tool</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.context.registry.html#module-data_juicer_agents.tools.context.registry">data_juicer_agents.tools.context.registry</a>
 </li>
@@ -3064,6 +3163,8 @@
 </li>
         <li><a href="api/data_juicer_agents.utils.agentscope_logging.html#module-data_juicer_agents.utils.agentscope_logging">data_juicer_agents.utils.agentscope_logging</a>
 </li>
+        <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#module-data_juicer_agents.utils.dj_config_bridge">data_juicer_agents.utils.dj_config_bridge</a>
+</li>
         <li><a href="api/data_juicer_agents.utils.llm_gateway.html#module-data_juicer_agents.utils.llm_gateway">data_juicer_agents.utils.llm_gateway</a>
 </li>
         <li><a href="api/data_juicer_agents.utils.runtime_helpers.html#module-data_juicer_agents.utils.runtime_helpers">data_juicer_agents.utils.runtime_helpers</a>
@@ -3085,8 +3186,6 @@
         <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.input.html#data_juicer_agents.tools.plan.build_process_spec.input.ProcessOperatorInput.name">(data_juicer_agents.tools.plan.build_process_spec.input.ProcessOperatorInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.html#data_juicer_agents.tools.plan.build_process_spec.ProcessOperatorInput.name">(data_juicer_agents.tools.plan.build_process_spec.ProcessOperatorInput attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.OperatorStep.name">(data_juicer_agents.tools.plan.OperatorStep attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.ProcessOperator.name">(data_juicer_agents.tools.plan.ProcessOperator attribute)</a>
 </li>
@@ -3139,14 +3238,6 @@
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlannerCore.normalize_context">(data_juicer_agents.tools.plan.PlannerCore class method)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.tools.plan.assemble_plan.logic.html#data_juicer_agents.tools.plan.assemble_plan.logic.PlannerCore.normalize_dataset_spec">normalize_dataset_spec() (data_juicer_agents.tools.plan.assemble_plan.logic.PlannerCore class method)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.assemble_plan.html#data_juicer_agents.tools.plan.assemble_plan.PlannerCore.normalize_dataset_spec">(data_juicer_agents.tools.plan.assemble_plan.PlannerCore class method)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlannerCore.normalize_dataset_spec">(data_juicer_agents.tools.plan.PlannerCore class method)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.normalize_line_idx">normalize_line_idx() (in module data_juicer_agents.capabilities.session.runtime)</a>
 
       <ul>
@@ -3163,10 +3254,12 @@
         <li><a href="api/data_juicer_agents.tools.dev.html#data_juicer_agents.tools.dev.ScaffoldResult.notes">(data_juicer_agents.tools.dev.ScaffoldResult attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.np">np (data_juicer_agents.PlanModel attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.html#data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput.np">np (data_juicer_agents.tools.plan.build_system_spec.BuildSystemSpecInput attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.np">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
+        <li><a href="api/data_juicer_agents.tools.plan.build_system_spec.input.html#data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput.np">(data_juicer_agents.tools.plan.build_system_spec.input.BuildSystemSpecInput attribute)</a>
+</li>
+        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildSystemSpecInput.np">(data_juicer_agents.tools.plan.BuildSystemSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.np">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
 </li>
@@ -3219,22 +3312,6 @@
         <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.input.html#data_juicer_agents.tools.retrieve.retrieve_operators.input.GenericOutput.ok">(data_juicer_agents.tools.retrieve.retrieve_operators.input.GenericOutput attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.open_monitor">open_monitor (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.open_monitor">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.open_monitor">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.open_tracer">open_tracer (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.open_tracer">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.open_tracer">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.operator_name">operator_name (data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
 
       <ul>
@@ -3249,6 +3326,12 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.operator_names">operator_names (data_juicer_agents.PlanModel attribute)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.operator_names">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.operator_type">operator_type (data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
 
       <ul>
@@ -3261,22 +3344,16 @@
         <li><a href="api/data_juicer_agents.tools.dev.html#data_juicer_agents.tools.dev.ScaffoldResult.operator_type">(data_juicer_agents.tools.dev.ScaffoldResult attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.operators">operators (data_juicer_agents.PlanModel attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.html#data_juicer_agents.tools.plan.build_process_spec.BuildProcessSpecInput.operators">operators (data_juicer_agents.tools.plan.build_process_spec.BuildProcessSpecInput attribute)</a>
 
       <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.html#data_juicer_agents.tools.plan.build_process_spec.BuildProcessSpecInput.operators">(data_juicer_agents.tools.plan.build_process_spec.BuildProcessSpecInput attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.input.html#data_juicer_agents.tools.plan.build_process_spec.input.BuildProcessSpecInput.operators">(data_juicer_agents.tools.plan.build_process_spec.input.BuildProcessSpecInput attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.BuildProcessSpecInput.operators">(data_juicer_agents.tools.plan.BuildProcessSpecInput attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.operators">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.ProcessSpec.operators">(data_juicer_agents.tools.plan.ProcessSpec attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.OperatorStep">OperatorStep (class in data_juicer_agents.tools.plan)</a>
-</li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.output_dir">output_dir (data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
 
       <ul>
@@ -3324,8 +3401,6 @@
       <ul>
         <li><a href="api/data_juicer_agents.tools.plan.build_process_spec.html#data_juicer_agents.tools.plan.build_process_spec.ProcessOperatorInput.params">(data_juicer_agents.tools.plan.build_process_spec.ProcessOperatorInput attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.OperatorStep.params">(data_juicer_agents.tools.plan.OperatorStep attribute)</a>
-</li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.ProcessOperator.params">(data_juicer_agents.tools.plan.ProcessOperator attribute)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.ProcessOperatorInput.params">(data_juicer_agents.tools.plan.ProcessOperatorInput attribute)</a>
@@ -3337,6 +3412,8 @@
         <li><a href="api/data_juicer_agents.utils.runtime_helpers.html#data_juicer_agents.utils.runtime_helpers.parse_line_ranges">(in module data_juicer_agents.utils.runtime_helpers)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.parser">parser (data_juicer_agents.utils.dj_config_bridge.DJConfigBridge property)</a>
+</li>
       <li><a href="api/data_juicer_agents.core.tool.contracts.html#data_juicer_agents.core.tool.contracts.ToolArtifact.path">path (data_juicer_agents.core.tool.contracts.ToolArtifact attribute)</a>
 
       <ul>
@@ -3509,6 +3586,12 @@
 </li>
       <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.TuiState.recent_tool_calls">recent_tool_calls() (data_juicer_agents.tui.models.TuiState method)</a>
 </li>
+      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.recipe">recipe (data_juicer_agents.PlanModel attribute)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.recipe">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/data_juicer_agents.tools.retrieve.retrieve_operators.backend.html#data_juicer_agents.tools.retrieve.retrieve_operators.backend.refresh_dj_func_info">refresh_dj_func_info() (in module data_juicer_agents.tools.retrieve.retrieve_operators.backend)</a>
 </li>
       <li><a href="api/data_juicer_agents.core.tool.registry.html#data_juicer_agents.core.tool.registry.ToolRegistry.register">register() (data_juicer_agents.core.tool.registry.ToolRegistry method)</a>
@@ -3627,6 +3710,12 @@
         <li><a href="api/data_juicer_agents.tools.dev.develop_operator.scaffold.html#data_juicer_agents.tools.dev.develop_operator.scaffold.run_smoke_check">(in module data_juicer_agents.tools.dev.develop_operator.scaffold)</a>
 </li>
       </ul></li>
+      <li><a href="api/data_juicer_agents.commands.html#data_juicer_agents.commands.run_tool">run_tool() (in module data_juicer_agents.commands)</a>
+
+      <ul>
+        <li><a href="api/data_juicer_agents.commands.tool_cmd.html#data_juicer_agents.commands.tool_cmd.run_tool">(in module data_juicer_agents.commands.tool_cmd)</a>
+</li>
+      </ul></li>
       <li><a href="api/data_juicer_agents.tui.html#data_juicer_agents.tui.run_tui_session">run_tui_session() (in module data_juicer_agents.tui)</a>
 
       <ul>
@@ -3687,18 +3776,12 @@
 </li>
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.SessionToolRuntime">SessionToolRuntime (class in data_juicer_agents.capabilities.session.runtime)</a>
 </li>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.set">set() (data_juicer_agents.tools.plan.SystemSpec method)</a>
+</li>
       <li><a href="api/data_juicer_agents.capabilities.session.runtime.html#data_juicer_agents.capabilities.session.runtime.short_log">short_log() (in module data_juicer_agents.capabilities.session.runtime)</a>
 
       <ul>
         <li><a href="api/data_juicer_agents.utils.runtime_helpers.html#data_juicer_agents.utils.runtime_helpers.short_log">(in module data_juicer_agents.utils.runtime_helpers)</a>
-</li>
-      </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.skip_op_error">skip_op_error (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.skip_op_error">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.skip_op_error">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
 </li>
       </ul></li>
       <li><a href="api/data_juicer_agents.tools.dev.develop_operator.html#data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput.smoke_check">smoke_check (data_juicer_agents.tools.dev.develop_operator.DevelopOperatorInput attribute)</a>
@@ -3719,10 +3802,10 @@
         <li><a href="api/data_juicer_agents.tools.apply.html#data_juicer_agents.tools.apply.ApplyResult.start_time">(data_juicer_agents.tools.apply.ApplyResult attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.ToolCallState.started_at">started_at (data_juicer_agents.tui.models.ToolCallState attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.capabilities.apply.service.html#data_juicer_agents.capabilities.apply.service.ApplyResult.status">status (data_juicer_agents.capabilities.apply.service.ApplyResult attribute)</a>
 
       <ul>
@@ -3819,14 +3902,8 @@
         <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.TimelineItem.text">(data_juicer_agents.tui.models.TimelineItem attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.text_keys">text_keys (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.text_keys">(data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.text_keys">text_keys (data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.text_keys">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.text_keys_hint">text_keys_hint (data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 
       <ul>
@@ -3999,16 +4076,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tui.models.html#data_juicer_agents.tui.models.TuiState.upsert_tool_call">upsert_tool_call() (data_juicer_agents.tui.models.TuiState method)</a>
 </li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.use_cache">use_cache (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.use_cache">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.SystemSpec.use_cache">(data_juicer_agents.tools.plan.SystemSpec attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.user_intent">user_intent (data_juicer_agents.PlanModel attribute)</a>
 
       <ul>
@@ -4031,6 +4098,8 @@
         <li><a href="api/data_juicer_agents.tools.plan.plan_validate.html#data_juicer_agents.tools.plan.plan_validate.PlanValidator.validate">(data_juicer_agents.tools.plan.plan_validate.PlanValidator static method)</a>
 </li>
         <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanValidator.validate">(data_juicer_agents.tools.plan.PlanValidator static method)</a>
+</li>
+        <li><a href="api/data_juicer_agents.utils.dj_config_bridge.html#data_juicer_agents.utils.dj_config_bridge.DJConfigBridge.validate">(data_juicer_agents.utils.dj_config_bridge.DJConfigBridge method)</a>
 </li>
       </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.validate_dataset_spec.html#data_juicer_agents.tools.plan.validate_dataset_spec.validate_dataset_spec">validate_dataset_spec() (in module data_juicer_agents.tools.plan.validate_dataset_spec)</a>
@@ -4073,14 +4142,14 @@
         <li><a href="api/data_juicer_agents.tools.plan.validate_system_spec.logic.html#data_juicer_agents.tools.plan.validate_system_spec.logic.validate_system_spec">(in module data_juicer_agents.tools.plan.validate_system_spec.logic)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.validate_system_spec_payload">validate_system_spec_payload() (in module data_juicer_agents.tools.plan)</a>
 
       <ul>
         <li><a href="api/data_juicer_agents.tools.plan.validate_system_spec.logic.html#data_juicer_agents.tools.plan.validate_system_spec.logic.validate_system_spec_payload">(in module data_juicer_agents.tools.plan.validate_system_spec.logic)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.ValidateDatasetSpecInput">ValidateDatasetSpecInput (class in data_juicer_agents.tools.plan)</a>
 
       <ul>
@@ -4105,14 +4174,8 @@
         <li><a href="api/data_juicer_agents.tools.plan.validate_system_spec.input.html#data_juicer_agents.tools.plan.validate_system_spec.input.ValidateSystemSpecInput">(class in data_juicer_agents.tools.plan.validate_system_spec.input)</a>
 </li>
       </ul></li>
-      <li><a href="api/data_juicer_agents.html#data_juicer_agents.PlanModel.video_key">video_key (data_juicer_agents.PlanModel attribute)</a>
-
-      <ul>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.video_key">(data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
+      <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.DatasetBindingSpec.video_key">video_key (data_juicer_agents.tools.plan.DatasetBindingSpec attribute)</a>
 </li>
-        <li><a href="api/data_juicer_agents.tools.plan.html#data_juicer_agents.tools.plan.PlanModel.video_key">(data_juicer_agents.tools.plan.PlanModel attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/data_juicer_agents.tools.plan.build_dataset_spec.html#data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput.video_key_hint">video_key_hint (data_juicer_agents.tools.plan.build_dataset_spec.BuildDatasetSpecInput attribute)</a>
 
       <ul>
