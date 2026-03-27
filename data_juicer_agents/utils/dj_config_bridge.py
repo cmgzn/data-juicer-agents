@@ -1,25 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Bridge to Data-Juicer's native configuration system.
+"""Compatibility bridge built on top of NativeSchemaProvider."""
 
-This module provides a dynamic bridge to Data-Juicer's configuration,
-eliminating the need to manually sync schema definitions.
-
-Public API:
-    get_dj_config_bridge()  → singleton DJConfigBridge instance
-    coerce_fields()         → type-coerce dict values via DJ parser hints
-
-Field classification lists:
-    dataset_fields          → dataset I/O and binding fields
-    system_fields           → runtime/executor system fields
-    agent_managed_fields    → fields auto-set by the agent (not by LLM)
-"""
-
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from .dataset_config_contract import DATASET_FIELDS
-
-logger = logging.getLogger(__name__)
+from data_juicer_agents.native_schema import get_native_schema_provider
 
 # ---------------------------------------------------------------------------
 # Field classification
@@ -34,70 +18,8 @@ agent_managed_fields = [
     "config",  # This is for passing the full config dict to the agent for internal use, not for LLM configuration.
 ]
 
-# Dataset-related field names
-dataset_fields = list(DATASET_FIELDS)
-
-# System/runtime-related field names (executor, parallelism, caching, etc.)
-system_fields = [
-    "adaptive_batch_size",
-    "auto_num",
-    "auto_op_parallelism",
-    "backup_count",
-    "cache_compress",
-    "checkpoint.enabled",
-    "checkpoint.n_ops",
-    "checkpoint.op_names",
-    "checkpoint.strategy",
-    "checkpoint_dir",
-    "conflict_resolve_strategy",
-    "custom_operator_paths",
-    "data_probe_algo",
-    "data_probe_ratio",
-    "debug",
-    "ds_cache_dir",
-    "event_log_dir",
-    "event_logging.enabled",
-    "executor_type",
-    "export_original_dataset",
-    "fusion_strategy",
-    "hpo_config",
-    "intermediate_storage.cleanup_on_success",
-    "intermediate_storage.cleanup_temp_files",
-    "intermediate_storage.compression",
-    "intermediate_storage.format",
-    "intermediate_storage.max_retention_days",
-    "intermediate_storage.preserve_intermediate_data",
-    "intermediate_storage.retention_policy",
-    "intermediate_storage.write_partitions",
-    "max_log_size_mb",
-    "max_partition_size_mb",
-    "min_common_dep_num_to_combine",
-    "np",
-    "op_fusion",
-    "op_list_to_mine",
-    "op_list_to_trace",
-    "open_insight_mining",
-    "open_monitor",
-    "open_tracer",
-    "partition.mode",
-    "partition.num_of_partitions",
-    "partition.target_size_mb",
-    "partition_dir",
-    "partition_size",
-    "percentiles",
-    "preserve_intermediate_data",
-    "ray_address",
-    "resource_optimization.auto_configure",
-    "save_stats_in_one_file",
-    "skip_op_error",
-    "temp_dir",
-    "trace_keys",
-    "trace_num",
-    "turbo",
-    "use_cache",
-    "use_checkpoint",
-    "work_dir",
-]
+dataset_fields = list(get_native_schema_provider().get_dataset_schema().keys())
+system_fields = list(get_native_schema_provider().get_system_schema().keys())
 
 # ---------------------------------------------------------------------------
 # Bridge class
@@ -112,53 +34,29 @@ class DJConfigBridge:
     """
 
     def __init__(self):
-        self._parser = None
+        self._provider = get_native_schema_provider()
         self._default_config = None
 
     # -- parser helpers -----------------------------------------------------
 
     @property
     def parser(self):
-        """Lazy load Data-Juicer base parser (no OPs registered)."""
-        if self._parser is None:
-            from data_juicer.config.config import build_base_parser
-
-            self._parser = build_base_parser()
-        return self._parser
+        return self._provider.parser
 
     def _build_parser_with_ops(self, used_ops: Optional[set] = None):
-        """Build a fresh parser with OP arguments registered."""
-        from data_juicer.config.config import (
-            build_base_parser,
-            sort_op_by_types_and_names,
-            _collect_config_info_from_class_docs,
-        )
-        from data_juicer.ops.base_op import OPERATORS
-
-        parser = build_base_parser()
-        if used_ops:
-            ops_sorted = sort_op_by_types_and_names(OPERATORS.modules.items())
-            _collect_config_info_from_class_docs(
-                [(name, cls) for name, cls in ops_sorted if name in used_ops],
-                parser,
-            )
-        return parser
+        return self._provider._build_parser_with_ops(used_ops)
 
     # -- config extraction --------------------------------------------------
 
     def get_default_config(self) -> Dict[str, Any]:
-        """Return all parser fields with their default values (cached)."""
-        if self._default_config is not None:
-            return self._default_config
-
-        defaults = {}
-        for action in self.parser._actions:
-            if not hasattr(action, "dest") or action.dest == "help":
-                continue
-            defaults[action.dest] = getattr(action, "default", None)
-
-        self._default_config = defaults
-        return defaults
+        if self._default_config is None:
+            defaults = {
+                key: descriptor.default
+                for key, descriptor in self._provider.get_global_schema().items()
+            }
+            defaults["process"] = []
+            self._default_config = defaults
+        return self._default_config
 
     def extract_system_config(
         self, config: Optional[Dict[str, Any]] = None
@@ -196,9 +94,8 @@ class DJConfigBridge:
     def get_param_descriptions(self) -> Dict[str, str]:
         """Get help text for all parameters from parser."""
         return {
-            action.dest: getattr(action, "help", "")
-            for action in self.parser._actions
-            if hasattr(action, "dest") and action.dest != "help"
+            key: descriptor.description
+            for key, descriptor in self._provider.get_global_schema().items()
         }
 
     # -- validation ---------------------------------------------------------
@@ -216,14 +113,8 @@ class DJConfigBridge:
         Returns:
             ``(is_valid, error_messages)``
         """
-        try:
-            from jsonargparse import Namespace
-
-            ns = Namespace(**config)
-            self.parser.validate(ns)
-            return True, []
-        except Exception as e:
-            return False, [str(e)]
+        result = self._provider.validate_recipe(config)
+        return result.ok, result.error_messages()
 
     # -- operator introspection ---------------------------------------------
 
@@ -242,37 +133,12 @@ class DJConfigBridge:
             *op_param_map* is ``{op_name: {param, ...}}`` and
             *known_op_names* is the full set of registered DJ operators.
         """
-        try:
-            from data_juicer.ops.base_op import OPERATORS
-
-            known_op_names: set = set(OPERATORS.modules.keys())
-        except Exception:
-            known_op_names = set()
-
-        if not op_names:
-            return {}, known_op_names
-
-        valid_requested = op_names & known_op_names
-        if not valid_requested:
-            return {}, known_op_names
-
-        try:
-            parser = self._build_parser_with_ops(valid_requested)
-        except Exception:
-            return {}, known_op_names
-
-        op_param_map: Dict[str, set] = {op: set() for op in valid_requested}
-        for action in parser._actions:
-            if not hasattr(action, "dest"):
-                continue
-            dest = action.dest
-            if "." not in dest:
-                continue
-            op_name, param_name = dest.split(".", 1)
-            if op_name in op_param_map:
-                op_param_map[op_name].add(param_name)
-
-        return op_param_map, known_op_names
+        schemas = self._provider.get_operator_schema(op_names)
+        known_op_names = set(self._provider.get_operator_schema().keys())
+        return (
+            {name: set(schema.params.keys()) for name, schema in schemas.items()},
+            known_op_names,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -313,59 +179,5 @@ def coerce_fields(fields: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         ``(coerced_fields, errors)`` where *errors* lists human-readable
         messages for any field that failed type coercion.
     """
-    if not fields:
-        return {}, []
-
-    bridge = get_dj_config_bridge()
-
-    # Build dest -> expected type mapping from parser default values.
-    action_type_map: Dict[str, Any] = {}
-    known_parser_dests: set = set()
-    for action in bridge.parser._actions:
-        if hasattr(action, "dest") and action.dest != "help":
-            known_parser_dests.add(action.dest)
-            default = getattr(action, "default", None)
-            action_type_map[action.dest] = (
-                type(default) if default is not None else None
-            )
-
-    known_fields = {k: v for k, v in fields.items() if k in known_parser_dests}
-    unknown_fields = {k: v for k, v in fields.items() if k not in known_parser_dests}
-
-    if not known_fields:
-        return dict(fields), []
-
-    errors: List[str] = []
-    coerced_known: Dict[str, Any] = {}
-
-    _BOOL_TRUE = {"true", "1", "yes"}
-    _BOOL_FALSE = {"false", "0", "no"}
-
-    for key, value in known_fields.items():
-        expected_type = action_type_map.get(key)
-
-        if expected_type is bool and isinstance(value, str):
-            lowered = value.strip().lower()
-            if lowered in _BOOL_TRUE:
-                coerced_known[key] = True
-            elif lowered in _BOOL_FALSE:
-                coerced_known[key] = False
-            else:
-                coerced_known[key] = value
-                errors.append(f"Cannot coerce {key}={value!r} to bool; kept as-is.")
-        elif expected_type is int and isinstance(value, str):
-            try:
-                coerced_known[key] = int(value)
-            except (ValueError, TypeError):
-                coerced_known[key] = value
-                errors.append(f"Cannot coerce {key}={value!r} to int; kept as-is.")
-        elif expected_type is float and isinstance(value, str):
-            try:
-                coerced_known[key] = float(value)
-            except (ValueError, TypeError):
-                coerced_known[key] = value
-                errors.append(f"Cannot coerce {key}={value!r} to float; kept as-is.")
-        else:
-            coerced_known[key] = value
-
-    return {**coerced_known, **unknown_fields}, errors
+    coerced, errors = get_native_schema_provider().coerce_config(fields)
+    return coerced, [message for _, message in errors]

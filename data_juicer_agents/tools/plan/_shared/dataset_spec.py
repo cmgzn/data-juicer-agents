@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from data_juicer_agents.native_schema import get_native_schema_provider
 from data_juicer_agents.utils.dataset_config_contract import source_priority_text
 
 from .normalize import normalize_optional_text, normalize_params, normalize_string_list
@@ -117,63 +118,14 @@ def _is_probable_remote_export_path(path: str) -> bool:
 
 
 def _validate_dataset_config(dataset_cfg: Dict[str, Any]) -> Tuple[List[str], List[str]]:
-    errors: List[str] = []
-    warnings: List[str] = []
-
-    if not isinstance(dataset_cfg, dict):
-        errors.append("dataset must be an object with a 'configs' list")
-        return errors, warnings
-
-    configs = dataset_cfg.get("configs")
-    if not isinstance(configs, list) or not configs:
-        errors.append("dataset.configs must be a non-empty list")
-        return errors, warnings
-
-    if "max_sample_num" in dataset_cfg:
-        max_sample_num = dataset_cfg.get("max_sample_num")
-        if not isinstance(max_sample_num, int) or max_sample_num <= 0:
-            errors.append("dataset.max_sample_num must be a positive integer")
-
-    normalized_types: List[str] = []
-    for idx, ds_config in enumerate(configs):
-        if not isinstance(ds_config, dict):
-            errors.append(f"dataset.configs[{idx}] must be an object")
-            continue
-        data_type = str(ds_config.get("type", "")).strip()
-        data_source = str(ds_config.get("source", "")).strip()
-        if not data_type:
-            errors.append(f"dataset.configs[{idx}].type is required")
-            continue
-        normalized_types.append(data_type)
-
-        try:
-            from jsonargparse import Namespace
-            from data_juicer.core.data.load_strategy import DataLoadStrategyRegistry
-
-            strategy_cls = DataLoadStrategyRegistry.get_strategy_class(
-                "default",
-                data_type,
-                data_source or "*",
-            )
-            if strategy_cls is None:
-                errors.append(
-                    f"dataset.configs[{idx}] has no matching load strategy: type={data_type}, source={data_source or '*'}"
-                )
-            else:
-                try:
-                    strategy_cls(ds_config, cfg=Namespace())
-                except Exception as exc:
-                    errors.append(f"dataset.configs[{idx}] invalid: {exc}")
-        except Exception as exc:
-            warnings.append(f"dataset strategy validation skipped: {exc}")
-
-    normalized_type_set = {item for item in normalized_types if item}
-    if len(normalized_type_set) > 1:
-        errors.append("mixture of different dataset source types is not supported")
-    if normalized_type_set == {"remote"} and len(configs) > 1:
-        errors.append("multiple remote datasets are not supported")
-
-    return errors, warnings
+    result = get_native_schema_provider().validate_dataset_config({"dataset": dataset_cfg, "export_path": "/tmp/out.jsonl"})
+    dataset_errors = [
+        issue.message for issue in result.errors if issue.path.startswith("dataset")
+    ]
+    dataset_warnings = [
+        issue.message for issue in result.warnings if issue.path.startswith("dataset")
+    ]
+    return dataset_errors, dataset_warnings
 
 
 def _dataset_source_priority_warning(source_count: int) -> str | None:
@@ -263,14 +215,14 @@ def validate_dataset_spec_payload(
         errors.extend(dataset_errors)
         warnings.extend([item for item in dataset_warnings if item not in warnings])
 
-    # DJ parser validation for dataset fields
     try:
-        from data_juicer_agents.utils.dj_config_bridge import get_dj_config_bridge
-
-        bridge = get_dj_config_bridge()
         dataset_dict: Dict[str, Any] = {}
         if io.dataset_path:
             dataset_dict["dataset_path"] = io.dataset_path
+        if io.dataset is not None:
+            dataset_dict["dataset"] = io.dataset
+        if io.generated_dataset_config is not None:
+            dataset_dict["generated_dataset_config"] = io.generated_dataset_config
         if io.export_path:
             dataset_dict["export_path"] = io.export_path
         if binding.text_keys:
@@ -284,9 +236,9 @@ def validate_dataset_spec_payload(
         if binding.image_bytes_key:
             dataset_dict["image_bytes_key"] = binding.image_bytes_key
         if dataset_dict:
-            is_valid, dj_errors = bridge.validate(dataset_dict)
-            if not is_valid:
-                errors.extend(dj_errors)
+            result = get_native_schema_provider().validate_dataset_config(dataset_dict)
+            errors.extend(result.error_messages())
+            warnings.extend([item for item in result.warning_messages() if item not in warnings])
     except Exception:
         pass
 

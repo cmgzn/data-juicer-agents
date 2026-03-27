@@ -6,6 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List
 
+from data_juicer_agents.native_schema import get_native_schema_provider
+
 from .._shared.dataset_spec import (
     is_probable_remote_dataset_path,
     is_probable_remote_export_path,
@@ -47,11 +49,9 @@ def validate_recipe_with_dj(recipe: Dict[str, Any]) -> List[str]:
     that DJ itself would reject at runtime.
     """
     try:
-        from data_juicer_agents.utils.dj_config_bridge import get_dj_config_bridge
-        bridge = get_dj_config_bridge()
-        is_valid, dj_errors = bridge.validate(recipe)
-        if not is_valid:
-            return [f"DJ config error: {err}" for err in dj_errors]
+        result = get_native_schema_provider().validate_recipe(recipe)
+        if not result.ok:
+            return [f"DJ config error: {err}" for err in result.error_messages()]
     except Exception as exc:
         # DJ not installed or validation unavailable — skip silently
         return [f"DJ validation unavailable: {exc}"]

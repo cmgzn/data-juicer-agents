@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable
 
+from data_juicer_agents.native_schema import get_native_schema_provider
+
 from .._shared.normalize import normalize_string_list
 from .._shared.schema import SystemSpec
 from .._shared.system_spec import validate_system_spec_payload
@@ -16,9 +18,11 @@ def _load_dj_system_config() -> Dict[str, Any]:
         Dict of all system parameters with their default values from DJ
     """
     try:
-        from data_juicer_agents.utils.dj_config_bridge import get_dj_config_bridge
-        bridge = get_dj_config_bridge()
-        return bridge.extract_system_config()
+        provider = get_native_schema_provider()
+        return {
+            key: descriptor.default
+            for key, descriptor in provider.get_system_schema().items()
+        }
     except Exception:
         # Fallback to minimal defaults if DJ is not available
         return {

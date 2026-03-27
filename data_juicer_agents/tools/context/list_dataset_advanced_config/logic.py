@@ -6,6 +6,7 @@ from __future__ import annotations
 import inspect
 from typing import Any, Dict, List
 
+from data_juicer_agents.native_schema import get_native_schema_provider
 from data_juicer_agents.utils.dataset_config_contract import (
     DATASET_SOURCE_PRIORITY,
     build_dataset_spec_contract,
@@ -25,25 +26,18 @@ def _type_name(value: Any) -> str:
 
 def _build_dataset_fields(include_descriptions: bool) -> Dict[str, Any]:
     try:
-        from data_juicer_agents.utils.dj_config_bridge import (
-            dataset_fields,
-            get_dj_config_bridge,
-        )
-
-        bridge = get_dj_config_bridge()
-        defaults = bridge.extract_dataset_config()
-        descriptions = bridge.get_param_descriptions() if include_descriptions else {}
+        provider = get_native_schema_provider()
+        descriptors = provider.get_dataset_schema()
         fields: Dict[str, Any] = {}
-        for name in dataset_fields:
-            if name not in defaults:
-                continue
-            default = defaults.get(name)
+        for name, descriptor in descriptors.items():
             entry: Dict[str, Any] = {
-                "default": default,
-                "type": _type_name(type(default)) if default is not None else "None",
+                "default": descriptor.default,
+                "type": descriptor.type_name,
+                "source": descriptor.source,
+                "native_group": descriptor.native_group,
             }
             if include_descriptions:
-                entry["description"] = str(descriptions.get(name, "")).strip()
+                entry["description"] = descriptor.description
             fields[name] = entry
         return {
             "ok": True,
@@ -238,7 +232,7 @@ def _dataset_builder_rules() -> Dict[str, Any]:
 
 
 def _spec_contract() -> Dict[str, Any]:
-    return build_dataset_spec_contract()
+    return get_native_schema_provider().build_dataset_contract()
 
 
 def _examples() -> Dict[str, Any]:

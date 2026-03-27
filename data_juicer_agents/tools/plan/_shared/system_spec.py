@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Iterable, List, Tuple
 
+from data_juicer_agents.native_schema import get_native_schema_provider
+
 from .normalize import normalize_string_list
 from .schema import SystemSpec
 
@@ -34,19 +36,19 @@ def normalize_system_spec(
 
     # Coerce all fields to correct types for YAML serialization
     try:
-        from data_juicer_agents.utils.dj_config_bridge import coerce_fields
+        provider = get_native_schema_provider()
 
         # Coerce extra fields
-        coerced_extra, extra_errors = coerce_fields(spec._extra_fields)
+        coerced_extra, extra_error_pairs = provider.coerce_config(spec._extra_fields)
         spec._extra_fields = coerced_extra
 
         # Coerce core fields (np might be string from LLM)
         core_dict = {"np": spec.np, "executor_type": spec.executor_type}
-        coerced_core, core_errors = coerce_fields(core_dict)
+        coerced_core, core_error_pairs = provider.coerce_config(core_dict)
         spec.np = coerced_core.get("np", spec.np)
         spec.executor_type = coerced_core.get("executor_type", spec.executor_type)
 
-        coerce_errors = extra_errors + core_errors
+        coerce_errors = [message for _, message in extra_error_pairs + core_error_pairs]
         if coerce_errors:
             spec.warnings.extend(f"[type coercion] {err}" for err in coerce_errors)
     except Exception:
@@ -105,16 +107,12 @@ def validate_system_spec_payload(
 
     # DJ parser validation
     try:
-        from data_juicer_agents.utils.dj_config_bridge import get_dj_config_bridge
-
-        bridge = get_dj_config_bridge()
         system_dict = system_spec.to_dict()
         # Remove non-DJ fields before validation
         dj_dict = {k: v for k, v in system_dict.items() if k != "warnings"}
-        is_valid, dj_errors = bridge.validate(dj_dict)
-
-        if not is_valid:
-            errors.extend(dj_errors)
+        result = get_native_schema_provider().validate_system_config(dj_dict)
+        if not result.ok:
+            errors.extend(result.error_messages())
     except Exception:
         pass
 

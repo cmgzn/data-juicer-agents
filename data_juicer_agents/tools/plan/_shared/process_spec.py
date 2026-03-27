@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
+from data_juicer_agents.native_schema import get_native_schema_provider
+
 from .normalize import normalize_params
 from .schema import ProcessOperator, ProcessSpec
 
@@ -56,33 +58,16 @@ def validate_process_spec_payload(
         if not isinstance(op.params, dict):
             errors.append(f"operators[{idx}].params must be an object")
 
-    # DJ bridge validation (two steps)
     try:
-        from data_juicer_agents.utils.dj_config_bridge import get_dj_config_bridge
-
-        bridge = get_dj_config_bridge()
-
-        # Step 1: op_registry validation (dj-agents-side business logic)
-        # ProcessSpec structure is natural for this: use op.name / op.params directly
-        op_names = {op.name for op in process_spec.operators if op.name}
-        op_param_map, known_op_names = bridge.get_op_valid_params(op_names)
-        for idx, op in enumerate(process_spec.operators):
-            if not op.name:
-                continue
-            if op.name not in known_op_names:
-                errors.append(f"operators[{idx}]: unknown operator '{op.name}'")
-            elif op.name in op_param_map:
-                for param_key in (op.params or {}):
-                    if param_key not in op_param_map[op.name]:
-                        errors.append(
-                            f"operators[{idx}].{op.name}: unknown param '{param_key}'"
-                        )
-
+        process_result = get_native_schema_provider().validate_process_config(
+            [{item.name: item.params} for item in process_spec.operators]
+        )
+        errors.extend(process_result.error_messages())
+        warnings.extend(process_result.warning_messages())
     except Exception:
         warnings.append(
             "operator name/param validation skipped: DJ bridge unavailable"
         )
-
     if PROCESS_SPEC_DEFERRED_WARNING not in warnings:
         warnings.append(PROCESS_SPEC_DEFERRED_WARNING)
     return errors, warnings
