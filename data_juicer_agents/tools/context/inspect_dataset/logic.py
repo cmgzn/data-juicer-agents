@@ -78,8 +78,43 @@ def _load_json_records(path: Path, sample_size: int) -> Tuple[List[Dict[str, Any
     return [], 0
 
 
+_UNSUPPORTED_PREFIXES = (
+    "hf://",
+    "huggingface://",
+    "s3://",
+    "gs://",
+    "az://",
+    "hdfs://",
+    "http://",
+    "https://",
+)
+
+
+def _looks_like_unsupported_source(dataset_path: str) -> bool:
+    lower = dataset_path.strip().lower()
+    return any(lower.startswith(prefix) for prefix in _UNSUPPORTED_PREFIXES)
+
+
 def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str, Any]:
     """Inspect a small sample of a dataset and infer keys/modality for planning."""
+
+    if _looks_like_unsupported_source(dataset_path):
+        return {
+            "ok": False,
+            "error_type": "unsupported_input_source",
+            "error": (
+                f"inspect_dataset only supports local file paths (.jsonl / .json). "
+                f"The provided path '{dataset_path}' looks like a remote or non-local source "
+                f"which is not supported. Please download the dataset to a local path first, "
+                f"then call inspect_dataset with the local file path."
+            ),
+            "message": (
+                f"inspect_dataset does not support remote or non-local input sources. "
+                f"'{dataset_path}' appears to be a URL or cloud storage path. "
+                f"Download it locally and retry."
+            ),
+            "dataset_path": dataset_path,
+        }
 
     path = Path(dataset_path)
     if not path.exists():

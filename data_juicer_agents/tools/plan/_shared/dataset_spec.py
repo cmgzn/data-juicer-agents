@@ -221,6 +221,10 @@ def validate_dataset_spec_payload(
             dataset_dict["dataset"] = io.dataset.to_dict()
         if io.generated_dataset_config:
             dataset_dict["generated_dataset_config"] = io.generated_dataset_config.to_dict()
+        # Merge extra dataset fields (export_type, export_shard_size, suffixes, etc.)
+        # so that the DJ parser can validate them as well.
+        if io._extra_fields:
+            dataset_dict.update(io._extra_fields)
         if dataset_dict:
             is_valid, dj_errors = bridge.validate(dataset_dict)
             if not is_valid:
