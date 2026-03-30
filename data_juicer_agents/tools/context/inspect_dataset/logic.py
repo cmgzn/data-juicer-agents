@@ -82,12 +82,20 @@ def _load_csv_records(
     path: Path, sample_size: int, delimiter: str = ","
 ) -> Tuple[List[Dict[str, Any]], int]:
     rows: List[Dict[str, Any]] = []
-    with open(path, "r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f, delimiter=delimiter)
-        for row in reader:
-            if len(rows) >= sample_size:
-                break
-            rows.append(dict(row))
+    try:
+        with open(path, "r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f, delimiter=delimiter)
+            # Check if headers are present
+            if reader.fieldnames is None:
+                return [], 0
+            for row in reader:
+                if len(rows) >= sample_size:
+                    break
+                # Filter out None values that occur when rows have fewer fields than headers
+                cleaned_row = {k: v for k, v in row.items() if v is not None}
+                rows.append(cleaned_row)
+    except (UnicodeDecodeError, csv.Error, IOError) as e:
+        return [], 0
     return rows, len(rows)
 
 def _load_parquet_records(path: Path, sample_size: int) -> Tuple[List[Dict[str, Any]], int]:
@@ -183,8 +191,18 @@ def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str
         return {
             "ok": False,
             "error_type": "inspect_failed",
-            "error": "No valid object records found in sample",
-            "message": "No valid object records found in sample",
+            "error": (
+                f"Failed to load any valid records from the dataset. "
+                f"This could be due to: (1) file format/encoding issues, "
+                f"(2) malformed data structure, or (3) empty dataset. "
+                f"Scanned {scanned} lines but found no valid dict records."
+            ),
+            "message": (
+                f"Could not extract valid records from '{dataset_path}'. "
+                f"Try inspecting the file manually with shell commands like: "
+                f"'head -n 3 {dataset_path}' or 'cat {dataset_path} | head -n 3' "
+                f"to verify the file format and content structure."
+            ),
             "dataset_path": dataset_path,
             "sampled_records": 0,
             "scanned_lines": scanned,
