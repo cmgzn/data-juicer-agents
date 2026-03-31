@@ -231,3 +231,59 @@ def test_trace_step_none_values_become_empty_strings():
     entry = trace_step(None, None)
     assert entry["backend"] == ""
     assert entry["status"] == ""
+
+# ---------------------------------------------------------------------------
+# filter_by_tags
+# ---------------------------------------------------------------------------
+
+from data_juicer_agents.tools.retrieve.retrieve_operators.backend.result_builder import filter_by_tags
+
+@pytest.fixture()
+def tagged_ops():
+    return [
+        {"class_name": "text_length_filter", "class_tags": ["text", "common"]},
+        {"class_name": "image_size_filter", "class_tags": ["image", "common"]},
+        {"class_name": "image_text_similarity_filter", "class_tags": ["image", "text", "multimodal"]},
+        {"class_name": "document_deduplicator", "class_tags": ["text"]},
+    ]
+
+def test_filter_by_tags_none_returns_full_list(tagged_ops):
+    result = filter_by_tags(tagged_ops, None)
+    assert result is tagged_ops
+
+def test_filter_by_tags_empty_returns_full_list(tagged_ops):
+    result = filter_by_tags(tagged_ops, [])
+    assert result is tagged_ops
+
+def test_filter_by_tags_single_tag(tagged_ops):
+    result = filter_by_tags(tagged_ops, ["image"])
+    names = [r["class_name"] for r in result]
+    assert "image_size_filter" in names
+    assert "image_text_similarity_filter" in names
+    assert "text_length_filter" not in names
+    assert "document_deduplicator" not in names
+
+def test_filter_by_tags_match_all_requires_all_tags(tagged_ops):
+    """match_all: only entries that have BOTH image AND text are returned."""
+    result = filter_by_tags(tagged_ops, ["image", "text"])
+    names = [r["class_name"] for r in result]
+    assert names == ["image_text_similarity_filter"]
+
+def test_filter_by_tags_is_case_insensitive(tagged_ops):
+    result = filter_by_tags(tagged_ops, ["IMAGE"])
+    names = [r["class_name"] for r in result]
+    assert "image_size_filter" in names
+
+def test_filter_by_tags_fallback_when_no_match(tagged_ops):
+    """Falls back to full list when no entry matches all tags."""
+    result = filter_by_tags(tagged_ops, ["nonexistent_tag"])
+    assert result is tagged_ops
+
+def test_filter_by_tags_custom_tags_key():
+    ops = [
+        {"name": "op_a", "modalities": ["text"]},
+        {"name": "op_b", "modalities": ["image"]},
+    ]
+    result = filter_by_tags(ops, ["text"], tags_key="modalities")
+    assert len(result) == 1
+    assert result[0]["name"] == "op_a"

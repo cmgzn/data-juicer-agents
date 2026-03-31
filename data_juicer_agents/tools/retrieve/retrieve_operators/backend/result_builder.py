@@ -100,9 +100,9 @@ def filter_by_tags(
     tags: list[str] | None,
     tags_key: str = "class_tags",
 ) -> list[dict[str, Any]]:
-    """Pre-filter an operator info list by *tags* (intersection match).
+    """Pre-filter an operator info list by *tags* (match-all semantics).
 
-    An entry matches if its tag set has **any** overlap with the requested
+    An entry matches only if its tag set contains **all** of the requested
     *tags*.  Falls back to the full list when the filter yields no results,
     consistent with :func:`filter_by_op_type`.
 
@@ -119,7 +119,7 @@ def filter_by_tags(
         return info_list
     filtered = [
         entry for entry in info_list
-        if expected.intersection(
+        if expected.issubset(
             str(t).strip().lower()
             for t in (entry.get(tags_key) or [])
         )

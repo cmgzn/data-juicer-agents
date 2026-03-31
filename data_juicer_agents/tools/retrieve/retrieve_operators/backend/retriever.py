@@ -435,14 +435,15 @@ class BM25Retriever(RetrieverBackend):
         tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         searcher = self._get_searcher()
-        # Over-fetch when filtering to compensate for post-filter drops
-        fetch_limit = limit * 3 if (op_type or tags) else limit
-        ranked = searcher.search_by_bm25(query=query, top_k=fetch_limit)
+        # Pass op_type and tags directly to OPSearcher for pre-filtering
+        ranked = searcher.search_by_bm25(
+            query=query,
+            top_k=limit,
+            tags=tags or None,
+            op_type=op_type or None,
+        )
 
-        # Unified filtering via filter_by_op_type / filter_by_tags
         valid_rows = [r for r in ranked if isinstance(r, dict)]
-        valid_rows = filter_by_op_type(valid_rows, op_type, type_key="type")
-        valid_rows = filter_by_tags(valid_rows, tags, tags_key="tags")
 
         items: list[dict[str, Any]] = []
         for rank, row in enumerate(valid_rows, start=1):
@@ -501,14 +502,15 @@ class RegexRetriever(RetrieverBackend):
         tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         searcher = self._get_searcher()
+        # Pass op_type and tags directly to OPSearcher for pre-filtering
         matched = searcher.search_by_regex(
-            query=query, fields=["name"]
+            query=query,
+            fields=["name"],
+            tags=tags or None,
+            op_type=op_type or None,
         )
 
-        # Unified filtering via filter_by_op_type / filter_by_tags
         valid_rows = [r for r in matched if isinstance(r, dict)]
-        valid_rows = filter_by_op_type(valid_rows, op_type, type_key="type")
-        valid_rows = filter_by_tags(valid_rows, tags, tags_key="tags")
 
         items: list[dict[str, Any]] = []
         for rank, row in enumerate(valid_rows, start=1):

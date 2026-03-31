@@ -41,7 +41,7 @@ class RetrieveOperatorsInput(BaseModel):
         description=(
             "Modality/resource tags to filter operators "
             "(e.g. 'text', 'image', 'multimodal', 'audio', 'video', 'cpu', 'gpu', 'api'). "
-            "Only operators matching at least one of the specified tags are returned."
+            "Only operators whose tag set contains ALL of the specified tags are returned (match-all semantics)."
         ),
     )
 
