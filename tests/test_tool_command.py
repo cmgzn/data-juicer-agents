@@ -153,7 +153,7 @@ def test_tool_run_read_tool_success(tmp_path: Path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["ok"] is True
     assert payload["action"] == "inspect_dataset"
-    assert payload["dataset_path"] == str(dataset)
+    assert payload["inspected_path"] == str(dataset)
 
 
 def test_tool_run_harness_profile_blocks_excluded_tool(monkeypatch, tmp_path: Path, capsys):
@@ -306,7 +306,9 @@ def test_tool_run_invalid_json_returns_exit_2(capsys):
 
 
 def test_tool_run_validation_error_returns_exit_2(capsys):
-    code = main(["tool", "run", "inspect_dataset", "--input-json", json.dumps({})])
+    # inspect_dataset requires at least dataset_path or dataset; pass an
+    # invalid type for sample_size to trigger pydantic validation.
+    code = main(["tool", "run", "inspect_dataset", "--input-json", json.dumps({"sample_size": -1})])
     assert code == 2
 
     payload = json.loads(capsys.readouterr().out)

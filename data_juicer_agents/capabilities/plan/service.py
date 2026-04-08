@@ -77,6 +77,8 @@ class PlanOrchestrator:
         user_intent: str,
         dataset_path: str,
         export_path: str,
+        dataset: Dict[str, Any] | None = None,
+        generated_dataset_config: Dict[str, Any] | None = None,
         custom_operator_paths: Iterable[Any] | None = None,
         retrieved_candidates: Dict[str, Any] | None = None,
         retrieval_top_k: int = 5,
@@ -89,11 +91,17 @@ class PlanOrchestrator:
             mode=retrieval_mode,
             retrieved_candidates=retrieved_candidates,
         )
-        dataset_profile = inspect_dataset_schema(dataset_path, sample_size=20)
+        dataset_profile = inspect_dataset_schema(
+            dataset_path=dataset_path,
+            sample_size=20,
+            dataset=dataset,
+        ) if (dataset_path or dataset) else {}
 
         dataset_result = build_dataset_spec(
             user_intent=user_intent,
             dataset_path=dataset_path,
+            dataset=dataset,
+            generated_dataset_config=generated_dataset_config,
             export_path=export_path,
             dataset_profile=dataset_profile,
         )

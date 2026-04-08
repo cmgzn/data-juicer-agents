@@ -29,11 +29,59 @@ def _error_result(
 
 
 def execute_plan(args) -> Dict[str, Any]:
+    import json as _json
+
     dataset_path = str(getattr(args, "dataset", "") or "").strip()
     export_path = str(getattr(args, "export", "") or "").strip()
-    if not dataset_path or not export_path:
+
+    # Parse complex dataset config from JSON string
+    dataset_config_raw = str(getattr(args, "dataset_config", "") or "").strip()
+    dataset_config: Dict[str, Any] | None = None
+    if dataset_config_raw:
+        try:
+            parsed = _json.loads(dataset_config_raw)
+            if isinstance(parsed, dict):
+                dataset_config = parsed
+            else:
+                return _error_result(
+                    "--dataset-config must be a JSON object.",
+                    error_type="invalid_input",
+                    stage="input_validation",
+                )
+        except _json.JSONDecodeError as exc:
+            return _error_result(
+                f"--dataset-config is not valid JSON: {exc}",
+                error_type="invalid_input",
+                stage="input_validation",
+            )
+
+    # Parse generated dataset config from JSON string
+    gen_config_raw = str(getattr(args, "generated_dataset_config", "") or "").strip()
+    generated_dataset_config: Dict[str, Any] | None = None
+    if gen_config_raw:
+        try:
+            parsed = _json.loads(gen_config_raw)
+            if isinstance(parsed, dict):
+                generated_dataset_config = parsed
+            else:
+                return _error_result(
+                    "--generated-dataset-config must be a JSON object.",
+                    error_type="invalid_input",
+                    stage="input_validation",
+                )
+        except _json.JSONDecodeError as exc:
+            return _error_result(
+                f"--generated-dataset-config is not valid JSON: {exc}",
+                error_type="invalid_input",
+                stage="input_validation",
+            )
+
+    # At least one dataset source is required
+    has_source = bool(dataset_path) or bool(dataset_config) or bool(generated_dataset_config)
+    if not has_source or not export_path:
         return _error_result(
-            "--dataset and --export are required.",
+            "--export is required, and at least one dataset source must be provided "
+            "(--dataset, --dataset-config, or --generated-dataset-config).",
             error_type="missing_required",
             stage="input_validation",
         )
@@ -51,6 +99,8 @@ def execute_plan(args) -> Dict[str, Any]:
             user_intent=str(args.intent).strip(),
             dataset_path=dataset_path,
             export_path=export_path,
+            dataset=dataset_config,
+            generated_dataset_config=generated_dataset_config,
             custom_operator_paths=custom_operator_paths,
         )
     except Exception as exc:

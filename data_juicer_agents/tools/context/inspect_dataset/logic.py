@@ -139,35 +139,115 @@ def _looks_like_unsupported_source(dataset_path: str) -> bool:
     return any(lower.startswith(prefix) for prefix in _UNSUPPORTED_PREFIXES)
 
 
-def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str, Any]:
-    """Inspect a small sample of a dataset and infer keys/modality for planning."""
+def _dataset_path_to_dataset(dataset_path: str) -> Dict[str, Any]:
+    """Convert a plain dataset_path string to the standard dataset config format."""
+    return {
+        "configs": [
+            {"type": "local", "path": dataset_path},
+        ],
+    }
 
-    if _looks_like_unsupported_source(dataset_path):
+
+def _resolve_dataset_config(
+    dataset_path: str,
+    dataset: Dict[str, Any] | None,
+) -> Dict[str, Any]:
+    """Merge dataset_path and dataset into a single standard dataset config.
+
+    Priority: explicit *dataset* config wins; *dataset_path* is converted to
+    the standard format as a fallback.
+    """
+    if dataset and isinstance(dataset, dict):
+        return dict(dataset)
+    if dataset_path:
+        return _dataset_path_to_dataset(dataset_path)
+    return {"configs": []}
+
+
+def _pick_inspectable_path(dataset_config: Dict[str, Any]) -> str | None:
+    """Return the first local file path from a dataset config that can be inspected."""
+    configs = dataset_config.get("configs", [])
+    if not isinstance(configs, list):
+        return None
+    for cfg in configs:
+        if not isinstance(cfg, dict):
+            continue
+        source_type = str(cfg.get("type", "local")).strip().lower()
+        path_value = str(cfg.get("path", "")).strip()
+        if not path_value:
+            continue
+        if source_type in {"local", ""}:
+            if not _looks_like_unsupported_source(path_value):
+                return path_value
+    return None
+
+
+def inspect_dataset_schema(
+    dataset_path: str = "",
+    sample_size: int = 20,
+    dataset: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """Inspect a small sample of a dataset and infer keys/modality for planning.
+
+    Accepts either a plain *dataset_path* or a structured *dataset* config
+    (the ``{"configs": [...]}`` format).  When *dataset_path* is provided it
+    is automatically converted to the standard dataset config format so that
+    all sources are handled uniformly.
+    """
+    resolved_config = _resolve_dataset_config(dataset_path, dataset)
+    inspectable_path = _pick_inspectable_path(resolved_config)
+
+    if inspectable_path is None:
+        # No local path available to inspect
+        configs = resolved_config.get("configs", [])
+        if configs:
+            return {
+                "ok": False,
+                "error_type": "unsupported_input_source",
+                "error": (
+                    "inspect_dataset could not find a local file path to inspect "
+                    "in the provided dataset config. Only local file-based sources "
+                    "are supported for schema inspection."
+                ),
+                "message": (
+                    "No inspectable local path found in dataset config. "
+                    "Ensure at least one source has type='local' with a valid file path."
+                ),
+                "dataset": resolved_config,
+            }
+        return {
+            "ok": False,
+            "error_type": "missing_dataset_source",
+            "error": "No dataset source provided. Pass dataset_path or dataset config.",
+            "message": "No dataset source provided.",
+        }
+
+    if _looks_like_unsupported_source(inspectable_path):
         return {
             "ok": False,
             "error_type": "unsupported_input_source",
             "error": (
                 f"inspect_dataset only supports local file paths. "
-                f"The provided path '{dataset_path}' looks like a remote or non-local source "
+                f"The provided path '{inspectable_path}' looks like a remote or non-local source "
                 f"which is not supported. Please download the dataset to a local path first, "
                 f"then call inspect_dataset with the local file path."
             ),
             "message": (
                 f"inspect_dataset does not support remote or non-local input sources. "
-                f"'{dataset_path}' appears to be a URL or cloud storage path. "
+                f"'{inspectable_path}' appears to be a URL or cloud storage path. "
                 f"Download it locally and retry."
             ),
-            "dataset_path": dataset_path,
+            "dataset": resolved_config,
         }
 
-    path = Path(dataset_path)
+    path = Path(inspectable_path)
     if not path.exists():
         return {
             "ok": False,
             "error_type": "dataset_path_not_found",
-            "error": f"dataset_path does not exist: {dataset_path}",
-            "message": f"dataset_path does not exist: {dataset_path}",
-            "dataset_path": dataset_path,
+            "error": f"dataset_path does not exist: {inspectable_path}",
+            "message": f"dataset_path does not exist: {inspectable_path}",
+            "dataset": resolved_config,
         }
     if sample_size <= 0:
         sample_size = 20
@@ -198,12 +278,12 @@ def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str
                 f"Scanned {scanned} lines but found no valid dict records."
             ),
             "message": (
-                f"Could not extract valid records from '{dataset_path}'. "
+                f"Could not extract valid records from '{inspectable_path}'. "
                 f"Try inspecting the file manually with shell commands like: "
-                f"'head -n 3 {dataset_path}' or 'cat {dataset_path} | head -n 3' "
+                f"'head -n 3 {inspectable_path}' or 'cat {inspectable_path} | head -n 3' "
                 f"to verify the file format and content structure."
             ),
-            "dataset_path": dataset_path,
+            "dataset": resolved_config,
             "sampled_records": 0,
             "scanned_lines": scanned,
         }
@@ -279,7 +359,8 @@ def inspect_dataset_schema(dataset_path: str, sample_size: int = 20) -> Dict[str
     return {
         "ok": True,
         "message": "dataset inspected",
-        "dataset_path": dataset_path,
+        "dataset": resolved_config,
+        "inspected_path": inspectable_path,
         "sampled_records": len(rows),
         "scanned_lines": scanned,
         "modality": modality,

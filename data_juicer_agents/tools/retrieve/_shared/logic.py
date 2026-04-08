@@ -253,9 +253,13 @@ _MODALITY_TAG_MAP: Dict[str, List[str]] = {
     "video": ["video"],
 }
 
-def _infer_tags_from_dataset(dataset_path: str) -> List[str]:
-    """Probe *dataset_path* and return modality tags inferred from its schema.
+def _infer_tags_from_dataset(
+    dataset_path: str,
+    dataset: dict | None = None,
+) -> List[str]:
+    """Probe dataset and return modality tags inferred from its schema.
 
+    Accepts either a plain *dataset_path* or a structured *dataset* config.
     Returns an empty list when the dataset cannot be inspected or the modality
     is unknown, so the caller can fall back to unfiltered retrieval.
     """
@@ -263,7 +267,7 @@ def _infer_tags_from_dataset(dataset_path: str) -> List[str]:
         from data_juicer_agents.tools.context.inspect_dataset.logic import (
             inspect_dataset_schema,
         )
-        result = inspect_dataset_schema(dataset_path=dataset_path, sample_size=20)
+        result = inspect_dataset_schema(dataset_path=dataset_path, sample_size=20, dataset=dataset)
         if not result.get("ok"):
             return []
         modality = str(result.get("modality", "")).strip().lower()
