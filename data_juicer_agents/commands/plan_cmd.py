@@ -12,6 +12,29 @@ from data_juicer_agents.capabilities.plan.service import PlanOrchestrator
 from data_juicer_agents.commands.output_control import emit, emit_json, enabled
 
 
+def _parse_json_object_arg(raw_value: Any, *, arg_name: str) -> tuple[Dict[str, Any] | None, Dict[str, Any] | None]:
+    import json as _json
+
+    raw_text = str(raw_value or "").strip()
+    if not raw_text:
+        return None, None
+    try:
+        parsed = _json.loads(raw_text)
+    except _json.JSONDecodeError as exc:
+        return None, _error_result(
+            f"{arg_name} is not valid JSON: {exc}",
+            error_type="invalid_input",
+            stage="input_validation",
+        )
+    if not isinstance(parsed, dict):
+        return None, _error_result(
+            f"{arg_name} must be a JSON object.",
+            error_type="invalid_input",
+            stage="input_validation",
+        )
+    return parsed, None
+
+
 def _error_result(
     message: str,
     *,
@@ -31,11 +54,45 @@ def _error_result(
 def execute_plan(args) -> Dict[str, Any]:
     dataset_path = str(getattr(args, "dataset", "") or "").strip()
     export_path = str(getattr(args, "export", "") or "").strip()
-    if not dataset_path or not export_path:
+
+    dataset_config, parse_error = _parse_json_object_arg(
+        getattr(args, "dataset_config", None),
+        arg_name="--dataset-config",
+    )
+    if parse_error:
+        return parse_error
+
+    generated_dataset_config, parse_error = _parse_json_object_arg(
+        getattr(args, "generated_dataset_config", None),
+        arg_name="--generated-dataset-config",
+    )
+    if parse_error:
+        return parse_error
+
+    # At least one dataset source is required
+    has_source = bool(dataset_path) or bool(dataset_config) or bool(generated_dataset_config)
+    if not has_source or not export_path:
         return _error_result(
-            "--dataset and --export are required.",
+            "--export is required, and at least one dataset source must be provided "
+            "(--dataset, --dataset-config, or --generated-dataset-config).",
             error_type="missing_required",
             stage="input_validation",
+        )
+
+    # Warn when multiple sources are provided so users understand which one wins.
+    # Priority: generated_dataset_config > dataset-config (multi-source) > dataset (plain path)
+    active_sources = sum([
+        bool(generated_dataset_config),
+        bool(dataset_config),
+        bool(dataset_path),
+    ])
+    if active_sources > 1:
+        import logging as _logging
+        _logging.warning(
+            "Multiple dataset sources provided (%d). "
+            "Effective priority: --generated-dataset-config > --dataset-config > --dataset. "
+            "Only the highest-priority source will be used; lower-priority sources are ignored.",
+            active_sources,
         )
 
     custom_operator_paths = list(getattr(args, "custom_operator_paths", []) or [])
@@ -51,6 +108,8 @@ def execute_plan(args) -> Dict[str, Any]:
             user_intent=str(args.intent).strip(),
             dataset_path=dataset_path,
             export_path=export_path,
+            dataset=dataset_config,
+            generated_dataset_config=generated_dataset_config,
             custom_operator_paths=custom_operator_paths,
         )
     except Exception as exc:

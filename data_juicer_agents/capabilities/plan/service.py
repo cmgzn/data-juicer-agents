@@ -57,6 +57,7 @@ class PlanOrchestrator:
         *,
         user_intent: str,
         dataset_path: str,
+        dataset: Dict[str, Any] | None = None,
         top_k: int = 5,
         mode: str = "auto",
         retrieved_candidates: Dict[str, Any] | None = None,
@@ -69,6 +70,7 @@ class PlanOrchestrator:
             top_k=top_k,
             mode=mode,
             dataset_path=dataset_path or None,
+            dataset=dataset,
         )
 
     def generate_plan(
@@ -77,6 +79,8 @@ class PlanOrchestrator:
         user_intent: str,
         dataset_path: str,
         export_path: str,
+        dataset: Dict[str, Any] | None = None,
+        generated_dataset_config: Dict[str, Any] | None = None,
         custom_operator_paths: Iterable[Any] | None = None,
         retrieved_candidates: Dict[str, Any] | None = None,
         retrieval_top_k: int = 5,
@@ -85,15 +89,30 @@ class PlanOrchestrator:
         retrieval = self._resolve_retrieval(
             user_intent=user_intent,
             dataset_path=dataset_path,
+            dataset=dataset,
             top_k=retrieval_top_k,
             mode=retrieval_mode,
             retrieved_candidates=retrieved_candidates,
         )
-        dataset_profile = inspect_dataset_schema(dataset_path, sample_size=20)
+        # Skip schema probing when a generated dataset is the effective runtime
+        # source (highest priority).  Probing a lower-priority dataset_path/dataset
+        # would imprint the wrong modality and key bindings into the final plan.
+        if generated_dataset_config:
+            dataset_profile: Dict[str, Any] = {}
+        elif dataset_path or dataset:
+            dataset_profile = inspect_dataset_schema(
+                dataset_path=dataset_path,
+                sample_size=20,
+                dataset=dataset,
+            )
+        else:
+            dataset_profile = {}
 
         dataset_result = build_dataset_spec(
             user_intent=user_intent,
             dataset_path=dataset_path,
+            dataset=dataset,
+            generated_dataset_config=generated_dataset_config,
             export_path=export_path,
             dataset_profile=dataset_profile,
         )

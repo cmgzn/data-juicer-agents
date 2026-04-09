@@ -104,6 +104,24 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--export", default=None, help="Output jsonl path")
     plan.add_argument("--output", default=None, help="Output plan yaml path")
     plan.add_argument(
+        "--dataset-config",
+        default=None,
+        help=(
+            "JSON string for complex multi-source dataset config. "
+            "Use this for mixed sources, per-source weights, or max_sample_num. "
+            'Example: \'{"configs": [{"type": "local", "path": "/data/a.jsonl", "weight": 0.7}]}\''
+        ),
+    )
+    plan.add_argument(
+        "--generated-dataset-config",
+        default=None,
+        help=(
+            "JSON string for dynamically generated dataset via Data-Juicer formatters. "
+            "Must contain a 'type' key matching a registered formatter name. "
+            'Example: \'{"type": "EmptyFormatter", "length": 1000}\''
+        ),
+    )
+    plan.add_argument(
         "--custom-operator-paths",
         nargs="+",
         default=None,
