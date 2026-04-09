@@ -213,7 +213,8 @@ def test_prepare_retrieval_inputs_uses_dataset_config_when_dataset_path_missing(
     assert prepared["effective_tags"] == ["cpu", "image"]
 
 
-def test_prepare_retrieval_inputs_prefers_dataset_path_when_both_sources_exist(monkeypatch):
+def test_prepare_retrieval_inputs_prefers_dataset_config_over_dataset_path(monkeypatch):
+    # Priority: dataset (multi-source config) > dataset_path (plain path)
     from data_juicer_agents.tools.retrieve._shared import logic as svc
 
     captured: dict = {}
@@ -232,8 +233,8 @@ def test_prepare_retrieval_inputs_prefers_dataset_path_when_both_sources_exist(m
         dataset={"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]},
     )
 
-    assert captured["dataset_path"] == "/tmp/primary.jsonl"
-    assert captured["dataset"] is None
+    assert captured["dataset_path"] == ""
+    assert captured["dataset"] == {"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]}
     assert prepared["inferred_tags"] == ["text"]
 
 

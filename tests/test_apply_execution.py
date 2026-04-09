@@ -142,7 +142,8 @@ def test_apply_recipe_failure_payload_includes_failure_preview(tmp_path: Path):
     assert "failed to load plan file" in result["failure_preview"]
 
 
-def test_format_dataset_source_prefers_dataset_path_over_dataset_config():
+def test_format_dataset_source_prefers_dataset_config_over_dataset_path():
+    # Priority: generated_dataset_config > dataset (multi-source config) > dataset_path
     recipe = {
         "dataset_path": "/tmp/primary.jsonl",
         "dataset": {
@@ -151,4 +152,4 @@ def test_format_dataset_source_prefers_dataset_path_over_dataset_config():
             ],
         },
     }
-    assert _format_dataset_source(recipe) == "local: /tmp/primary.jsonl"
+    assert _format_dataset_source(recipe) == "local: /tmp/secondary.jsonl"
