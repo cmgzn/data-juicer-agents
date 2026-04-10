@@ -124,19 +124,14 @@ pytest test_email_mask_mapper.py
 
 ### 4. Integrate into Pipeline
 
-Pass the custom operator path in `build_system_spec`:
-
-```bash
-djx tool run build_system_spec --input-json '{"custom_operator_paths": ["./custom_operators"]}'
-```
-
-Use the operator in `build_process_spec`:
+Pass the custom operator path in `build_process_spec` alongside the operators:
 
 ```bash
 djx tool run build_process_spec --input-json '{
   "operators": [
     {"name": "email_mask_mapper", "params": {}}
-  ]
+  ],
+  "custom_operator_paths": ["./custom_operators"]
 }'
 ```
 
@@ -168,12 +163,10 @@ cat ./custom_operators/email_mask_mapper.py
 # Step 5: Test
 pytest ./custom_operators/test_email_mask_mapper.py
 
-# Step 6: Integrate into pipeline
-djx tool run build_system_spec --input-json '{"custom_operator_paths": ["./custom_operators"]}'
-
-# Step 7: Use in process_spec
+# Step 6: Integrate into pipeline (custom_operator_paths goes with operators)
 djx tool run build_process_spec --input-json '{
-  "operators": [{"name": "email_mask_mapper", "params": {}}]
+  "operators": [{"name": "email_mask_mapper", "params": {}}],
+  "custom_operator_paths": ["./custom_operators"]
 }'
 ```
 

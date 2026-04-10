@@ -11,7 +11,10 @@ from .._shared.process_spec import validate_process_spec_payload
 
 def validate_process_spec(*, process_spec: Dict[str, Any]) -> Dict[str, Any]:
     spec = ProcessSpec.from_dict(process_spec)
-    errors, warnings = validate_process_spec_payload(spec)
+    errors, warnings = validate_process_spec_payload(
+        spec,
+        custom_operator_paths=spec.custom_operator_paths or None,
+    )
     return {
         "ok": len(errors) == 0,
         "process_spec": spec.to_dict(),

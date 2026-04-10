@@ -78,8 +78,8 @@ def test_extract_dataset_config_returns_dataset_fields():
     assert "np" not in dataset_config
 
 
-def test_extract_process_config_returns_process_list():
-    """Test that extract_process_config returns the process list."""
+def test_extract_process_config_returns_process_dict():
+    """Test that extract_process_config returns process fields as a dict."""
     bridge = DJConfigBridge()
 
     process = [{"text_length_filter": {"min_len": 10}}]
@@ -87,7 +87,25 @@ def test_extract_process_config_returns_process_list():
 
     result = bridge.extract_process_config(config)
 
-    assert result == process
+    assert result["process"] == process
+    assert "custom_operator_paths" not in result
+
+
+def test_extract_process_config_includes_custom_operator_paths():
+    """Test that extract_process_config includes custom_operator_paths when present."""
+    bridge = DJConfigBridge()
+
+    process = [{"text_length_filter": {"min_len": 10}}]
+    config = {
+        "process": process,
+        "custom_operator_paths": ["./custom_ops"],
+        "np": 4,
+    }
+
+    result = bridge.extract_process_config(config)
+
+    assert result["process"] == process
+    assert result["custom_operator_paths"] == ["./custom_ops"]
 
 
 def test_get_param_descriptions_returns_dict():

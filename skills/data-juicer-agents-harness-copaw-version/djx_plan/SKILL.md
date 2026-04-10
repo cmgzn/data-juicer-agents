@@ -149,18 +149,13 @@ Build the system specification, configuring the execution environment.
 
 ### Input Schema
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `custom_operator_paths` | list | No | List of custom operator directory paths |
+Core parameters: `np`, `executor_type`. Advanced parameters can be passed directly.
 
 ### Command
 
 ```bash
 # Most cases use empty input
 djx tool run build_system_spec --input-json '{}'
-
-# With custom operators
-djx tool run build_system_spec --input-json '{"custom_operator_paths": ["./custom_operators"]}'
 ```
 
 ---

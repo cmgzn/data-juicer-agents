@@ -45,34 +45,23 @@ def normalize_process_spec(process_spec: ProcessSpec | Dict[str, Any]) -> Proces
 
 def _load_custom_operators_into_registry(
     custom_operator_paths: Iterable[Any] | None,
-) -> None:
+) -> List[str]:
     """Load custom operators into the DJ OPERATORS registry.
 
-    Calls the main library's ``load_custom_operators`` to dynamically import
-    custom operator modules, triggering their ``@OPERATORS.register_module``
-    decorators.  This makes custom operators visible to the registry-based
+    Delegates to the shared utility in ``utils.dj_config_bridge``.
+    This makes custom operators visible to the registry-based
     validation in ``validate_process_spec_payload``.
 
-    Safe to call multiple times within the same process: the main library
-    checks ``sys.modules`` and raises on true conflicts, but we catch and
-    log those to avoid blocking validation.
+    Returns:
+        List of warning/error messages from the loading process.
     """
     if not custom_operator_paths:
-        return
+        return []
     paths = [str(p).strip() for p in custom_operator_paths if str(p).strip()]
     if not paths:
-        return
-    try:
-        from data_juicer.config.config import load_custom_operators
-        load_custom_operators(paths)
-    except RuntimeError as exc:
-        # Already loaded in this process — safe to ignore
-        if "already loaded" in str(exc).lower():
-            logger.debug("Custom operators already loaded: %s", exc)
-        else:
-            logger.warning("Failed to load custom operators: %s", exc)
-    except Exception as exc:
-        logger.warning("Failed to load custom operators: %s", exc)
+        return []
+    from data_juicer_agents.utils.dj_config_bridge import load_custom_operators_into_registry
+    return load_custom_operators_into_registry(paths)
 
 
 def validate_process_spec_payload(
@@ -104,7 +93,9 @@ def validate_process_spec_payload(
             errors.append(f"operators[{idx}].params must be an object")
 
     # Load custom operators into registry before DJ bridge validation
-    _load_custom_operators_into_registry(custom_operator_paths)
+    load_warnings = _load_custom_operators_into_registry(custom_operator_paths)
+    if load_warnings:
+        warnings.extend(load_warnings)
 
     # DJ bridge validation (two steps)
     try:

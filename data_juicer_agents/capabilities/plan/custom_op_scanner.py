@@ -1,87 +1,66 @@
 # -*- coding: utf-8 -*-
-"""Scan custom operator paths and extract operator metadata via AST.
+"""Scan custom operator paths by importing them into the DJ registry.
 
 Used by PlanOrchestrator to inject custom operators into the retrieval
 candidate list so the LLM planner can select them.
+
+Strategy: import the custom operator modules (triggering their
+``@OPERATORS.register_module`` decorators), then diff the current
+registry against a builtin snapshot to identify custom operators.
+Metadata is extracted from ``OPSearcher`` records which provide
+accurate type, docstring, init params (including inherited ones),
+and tags.
 """
 
 from __future__ import annotations
 
-import ast
+import inspect
 import logging
-from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 logger = logging.getLogger(__name__)
 
 
-def _extract_register_name(decorator: ast.expr) -> str | None:
-    """Extract the operator name from @OPERATORS.register_module("name")."""
-    if not isinstance(decorator, ast.Call):
-        return None
-    func = decorator.func
-    if not isinstance(func, ast.Attribute):
-        return None
-    if func.attr != "register_module":
-        return None
-    if decorator.args and isinstance(decorator.args[0], ast.Constant):
-        return str(decorator.args[0].value)
-    return None
+def _load_custom_operators(paths: List[str]) -> List[str]:
+    """Import custom operator modules into the DJ OPERATORS registry.
+
+    Returns:
+        List of warning/error messages from the loading process.
+    """
+    from data_juicer_agents.utils.dj_config_bridge import load_custom_operators_into_registry
+    return load_custom_operators_into_registry(paths)
 
 
-def _extract_docstring(node: ast.ClassDef) -> str:
-    """Extract the docstring from a class definition."""
-    return ast.get_docstring(node) or ""
-
-
-def _extract_init_params(node: ast.ClassDef) -> List[str]:
-    """Extract __init__ parameter names (excluding self, *args, **kwargs)."""
-    for item in node.body:
-        if isinstance(item, ast.FunctionDef) and item.name == "__init__":
-            params = []
-            for arg in item.args.args:
-                if arg.arg not in ("self",):
-                    params.append(arg.arg)
-            return params
-    return []
-
-
-def _scan_file(filepath: Path) -> List[Dict[str, Any]]:
-    """Parse a single .py file and return metadata for registered operators."""
+def _extract_init_params_from_class(cls: type) -> List[str]:
+    """Extract __init__ parameter names via inspect (includes inherited params)."""
     try:
-        source = filepath.read_text(encoding="utf-8")
-        tree = ast.parse(source, filename=str(filepath))
-    except (SyntaxError, UnicodeDecodeError, OSError) as exc:
-        logger.debug("Skipping %s: %s", filepath, exc)
+        sig = inspect.signature(cls.__init__)
+        return [
+            name
+            for name, param in sig.parameters.items()
+            if name != "self"
+            and param.kind not in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD,
+            )
+        ][:6]
+    except (ValueError, TypeError):
         return []
-
-    results = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.ClassDef):
-            continue
-        for decorator in node.decorator_list:
-            op_name = _extract_register_name(decorator)
-            if op_name:
-                docstring = _extract_docstring(node)
-                init_params = _extract_init_params(node)
-                results.append({
-                    "operator_name": op_name,
-                    "class_name": node.name,
-                    "description": docstring,
-                    "arguments_preview": init_params[:6],
-                    "source_file": str(filepath),
-                })
-    return results
 
 
 def scan_custom_operators(
     custom_operator_paths: Iterable[Any] | None,
 ) -> List[Dict[str, Any]]:
-    """Scan custom operator paths and return candidate-format metadata.
+    """Load custom operators and return candidate-format metadata.
+
+    Imports custom operator modules into the DJ registry, then identifies
+    custom operators by diffing the current registry against the builtin
+    snapshot (captured before any custom operators were loaded).  This
+    approach is idempotent and correctly detects name conflicts.
 
     Args:
         custom_operator_paths: Directories or .py files containing custom
-            operators registered via @OPERATORS.register_module.
+            operators registered via ``@OPERATORS.register_module``.
 
     Returns:
         List of candidate dicts compatible with the retrieval payload format.
@@ -89,55 +68,91 @@ def scan_custom_operators(
     if not custom_operator_paths:
         return []
 
-    raw_entries: List[Dict[str, Any]] = []
-    seen_names: set = set()
+    paths = [str(p).strip() for p in custom_operator_paths if str(p).strip()]
+    if not paths:
+        return []
 
-    for raw_path in custom_operator_paths:
-        path = Path(str(raw_path).strip()).expanduser().resolve()
-        if not path.exists():
-            logger.debug("Custom operator path does not exist: %s", path)
-            continue
+    # Load custom operators into registry (also captures builtin snapshot)
+    load_warnings = _load_custom_operators(paths)
+    for warning in load_warnings:
+        logger.warning("Custom operator loading: %s", warning)
 
-        py_files: List[Path] = []
-        if path.is_file() and path.suffix == ".py":
-            py_files.append(path)
-        elif path.is_dir():
-            py_files.extend(sorted(path.glob("**/*.py")))
+    try:
+        from data_juicer.ops import OPERATORS
+    except ImportError:
+        logger.warning("data_juicer.ops not available; skipping custom operator scan")
+        return []
 
-        for py_file in py_files:
-            for entry in _scan_file(py_file):
-                name = entry["operator_name"]
-                if name not in seen_names:
-                    seen_names.add(name)
-                    raw_entries.append(entry)
+    # Diff against builtin snapshot to find custom operators
+    from data_juicer_agents.utils.dj_config_bridge import get_builtin_operator_names
+    builtin_names = get_builtin_operator_names()
+    custom_op_names = sorted(set(OPERATORS.modules.keys()) - builtin_names)
+
+    if not custom_op_names:
+        logger.debug("No custom operators registered from paths: %s", paths)
+        return []
+
+    # Use OPSearcher to get rich metadata (type, desc, params, tags)
+    try:
+        from data_juicer.tools.op_search import OPSearcher
+        searcher = OPSearcher()
+        all_ops = searcher.all_ops
+    except Exception as exc:
+        logger.warning("OPSearcher unavailable, falling back to registry: %s", exc)
+        all_ops = None
 
     candidates = []
-    for rank, entry in enumerate(raw_entries, start=1):
+    for rank, op_name in enumerate(custom_op_names, start=1):
+        if all_ops and op_name in all_ops:
+            record = all_ops[op_name]
+            operator_type = getattr(record, "type", "unknown")
+            description = getattr(record, "desc", "") or ""
+            source_file = getattr(record, "source_path", "") or ""
+            arguments_preview = _extract_init_params_from_class(
+                OPERATORS.modules[op_name]
+            )
+        else:
+            cls = OPERATORS.modules[op_name]
+            operator_type = _infer_type_from_bases(cls)
+            description = (cls.__doc__ or "").split("\n")[0].strip()
+            try:
+                source_file = inspect.getfile(cls)
+            except (TypeError, OSError):
+                source_file = ""
+            arguments_preview = _extract_init_params_from_class(cls)
+
         candidates.append({
             "rank": rank,
-            "operator_name": entry["operator_name"],
-            "operator_type": _infer_type_from_name(entry["operator_name"]),
-            "description": entry["description"],
+            "operator_name": op_name,
+            "operator_type": operator_type,
+            "description": description,
             "relevance_score": 1.0,
             "score_source": "custom_operator",
             "key_match": [],
-            "arguments_preview": entry["arguments_preview"],
+            "arguments_preview": arguments_preview,
             "is_custom": True,
-            "source_file": entry["source_file"],
+            "source_file": source_file,
         })
 
     return candidates
 
 
-def _infer_type_from_name(name: str) -> str:
-    """Infer operator type from naming convention."""
-    if name.endswith("_mapper"):
+def _infer_type_from_bases(cls: type) -> str:
+    """Infer operator type from class inheritance hierarchy."""
+    base_names = {base.__name__ for base in cls.__mro__}
+    if "Mapper" in base_names:
         return "mapper"
-    if name.endswith("_filter"):
+    if "Filter" in base_names:
         return "filter"
-    if "dedup" in name:
+    if "Deduplicator" in base_names:
         return "deduplicator"
-    return "mapper"
+    if "Aggregator" in base_names:
+        return "aggregator"
+    if "Selector" in base_names:
+        return "selector"
+    if "Grouper" in base_names:
+        return "grouper"
+    return "unknown"
 
 
 __all__ = ["scan_custom_operators"]

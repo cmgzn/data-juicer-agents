@@ -20,6 +20,94 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+# Custom operator loading
+# ---------------------------------------------------------------------------
+
+# Snapshot of builtin operator names captured before any custom operators
+# are loaded.  Populated lazily on first call to
+# ``get_builtin_operator_names()`` so that all DJ-native operators are
+# already registered by that point.
+_builtin_operator_names: Optional[frozenset] = None
+
+# Paths that have already been successfully loaded into the registry.
+# Used to skip redundant calls to DJ's ``load_custom_operators`` which
+# raises RuntimeError on repeated loads via ``sys.modules`` checks.
+_loaded_custom_paths: set = set()
+
+
+def get_builtin_operator_names() -> frozenset:
+    """Return the set of operator names that ship with Data-Juicer.
+
+    The snapshot is captured once on first call and cached for the
+    lifetime of the process.  This allows callers to distinguish
+    custom operators from built-in ones regardless of how many times
+    ``load_custom_operators_into_registry`` is invoked.
+    """
+    global _builtin_operator_names
+    if _builtin_operator_names is not None:
+        return _builtin_operator_names
+    try:
+        from data_juicer.ops import OPERATORS
+        _builtin_operator_names = frozenset(OPERATORS.modules.keys())
+    except ImportError:
+        _builtin_operator_names = frozenset()
+    return _builtin_operator_names
+
+
+def load_custom_operators_into_registry(paths: List[str]) -> List[str]:
+    """Import custom operator modules into the DJ OPERATORS registry.
+
+    Triggers ``@OPERATORS.register_module`` decorators in the given paths.
+    Tracks which paths have been successfully loaded so that repeated
+    calls with the same paths are silently skipped without hitting DJ's
+    ``sys.modules`` conflict detection.
+
+    On first call the builtin operator snapshot is captured automatically
+    so that ``get_builtin_operator_names()`` can later distinguish custom
+    operators from built-in ones.
+
+    Args:
+        paths: List of directory or .py file paths containing custom operators.
+
+    Returns:
+        List of warning/error messages encountered during loading.
+        Empty list on success.  Callers are responsible for surfacing
+        these messages through their own error handling.
+    """
+    if not paths:
+        return ["No custom operator paths provided"]
+
+    # Ensure builtin snapshot is captured before loading custom operators
+    get_builtin_operator_names()
+
+    # Normalize and filter out already-loaded paths
+    import os
+    new_paths = []
+    for path in paths:
+        normalized = os.path.abspath(path)
+        if normalized not in _loaded_custom_paths:
+            new_paths.append(path)
+
+    if not new_paths:
+        return []
+
+    try:
+        from data_juicer.config.config import load_custom_operators
+        load_custom_operators(new_paths)
+        # Mark all new paths as successfully loaded
+        for path in new_paths:
+            _loaded_custom_paths.add(os.path.abspath(path))
+        return []
+    except RuntimeError as exc:
+        # DJ raises RuntimeError for genuine name conflicts (e.g. a custom
+        # operator has the same module name as an already-loaded one but
+        # different source).  Surface this so users know their operator
+        # was NOT registered.
+        return [f"Custom operator loading issue: {exc}"]
+    except Exception as exc:
+        return [f"Failed to load custom operators: {exc}"]
+
+# ---------------------------------------------------------------------------
 # Field classification
 # ---------------------------------------------------------------------------
 
@@ -209,10 +297,21 @@ class DJConfigBridge:
 
     def extract_process_config(
         self, config: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
-        """Extract process operator list."""
+    ) -> Dict[str, Any]:
+        """Extract process-related fields (operator list and custom operator paths).
+
+        Returns a dict with ``process`` (the operator list) and optionally
+        ``custom_operator_paths`` when present.  This mirrors the ownership
+        model where ``custom_operator_paths`` is bound to ``ProcessSpec``.
+        """
         config_dict = config if config is not None else self.get_default_config()
-        return config_dict.get("process", [])
+        result: Dict[str, Any] = {
+            "process": config_dict.get("process", []),
+        }
+        custom_paths = config_dict.get("custom_operator_paths")
+        if custom_paths:
+            result["custom_operator_paths"] = custom_paths
+        return result
 
     def get_param_descriptions(self) -> Dict[str, str]:
         """Get help text for all parameters from parser."""
