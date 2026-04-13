@@ -22,14 +22,13 @@ logger = logging.getLogger(__name__)
 
 # Maximum number of __init__ params to include in the candidate preview.
 # Keeps the LLM prompt concise while still showing the most important params.
-_MAX_PREVIEW_PARAMS = -1
-
+_MAX_PREVIEW_PARAMS: int | None = None
 
 def _extract_init_params_from_class(cls: type) -> List[str]:
     """Extract __init__ parameter names via inspect (includes inherited params)."""
     try:
         sig = inspect.signature(cls.__init__)
-        return [
+        params = [
             name
             for name, param in sig.parameters.items()
             if name != "self"
@@ -37,10 +36,10 @@ def _extract_init_params_from_class(cls: type) -> List[str]:
                 inspect.Parameter.VAR_POSITIONAL,
                 inspect.Parameter.VAR_KEYWORD,
             )
-        ][:_MAX_PREVIEW_PARAMS]
+        ]
+        return params[:_MAX_PREVIEW_PARAMS] if _MAX_PREVIEW_PARAMS is not None else params
     except (ValueError, TypeError):
         return []
-
 
 def scan_custom_operators(
     custom_operator_paths: Iterable[Any] | None,

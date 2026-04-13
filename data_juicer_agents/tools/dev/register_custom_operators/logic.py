@@ -103,8 +103,13 @@ def register_custom_operators(
     else:
         message = "No custom operators found in the provided paths"
 
+    # If warnings were raised and no operators were registered at all,
+    # the load effectively failed — report ok=False so callers don't
+    # silently proceed with an empty operator set.
+    success = bool(all_custom_names) or not load_warnings
+
     return {
-        "ok": True,
+        "ok": success,
         "registered_operators": all_custom_names,
         "newly_registered": newly_registered,
         "warnings": load_warnings,
