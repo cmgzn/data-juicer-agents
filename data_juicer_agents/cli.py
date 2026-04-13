@@ -167,9 +167,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     retrieve.add_argument(
         "--mode",
-        choices=["auto", "llm", "vector", "bm25", "regex"],
+        choices=["auto", "llm", "bm25", "regex", "vector"],
         default="auto",
-        help="Retrieval backend mode",
+        help="Retrieval backend mode (note: 'vector' is deprecated, mapped to 'bm25')",
     )
     retrieve.add_argument(
         "--dataset",

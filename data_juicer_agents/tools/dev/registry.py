@@ -8,7 +8,8 @@ from typing import List
 from data_juicer_agents.core.tool import ToolSpec
 
 from .develop_operator.tool import DEVELOP_OPERATOR
+from .register_custom_operators.tool import REGISTER_CUSTOM_OPERATORS
 
-TOOL_SPECS: List[ToolSpec] = [DEVELOP_OPERATOR]
+TOOL_SPECS: List[ToolSpec] = [DEVELOP_OPERATOR, REGISTER_CUSTOM_OPERATORS]
 
-__all__ = ["DEVELOP_OPERATOR", "TOOL_SPECS"]
+__all__ = ["DEVELOP_OPERATOR", "REGISTER_CUSTOM_OPERATORS", "TOOL_SPECS"]

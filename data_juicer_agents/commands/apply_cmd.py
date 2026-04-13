@@ -60,7 +60,12 @@ def _confirm(plan_data: dict) -> bool:
     print(f"About to execute plan: {str(plan_data.get('plan_id', '')).strip()}")
     print(f"Modality: {str(plan_data.get('modality', '')).strip()}")
     recipe = plan_data.get("recipe", {})
-    print(f"Dataset: {_format_dataset_source(recipe)}")
+    try:
+        dataset_summary = _format_dataset_source(recipe)
+    except ValueError as exc:
+        print(f"Error: {exc}")
+        return False
+    print(f"Dataset: {dataset_summary}")
     print(f"Export: {str(recipe.get('export_path', '')).strip()}")
     answer = input("Proceed? [y/N]: ").strip().lower()
     return answer in {"y", "yes"}

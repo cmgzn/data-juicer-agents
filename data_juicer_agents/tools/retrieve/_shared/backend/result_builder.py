@@ -2,7 +2,7 @@
 """Shared helpers for building retrieval results and trace entries.
 
 Extracted from backend.py and logic.py to eliminate duplicated code across
-the four retrieval backends (LLM, Vector, BM25, Regex).
+the three retrieval backends (LLM, BM25, Regex).
 """
 
 from __future__ import annotations
@@ -81,7 +81,7 @@ def filter_by_op_type(
     always receive a non-empty list as long as *info_list* itself is non-empty.
 
     Args:
-        info_list: List of operator info dicts (e.g. from ``get_op_catalog()``).
+        info_list: List of operator info dicts with a type key.
         op_type: Operator type string to match (e.g. ``"filter"``).  When
                  ``None`` or empty the full list is returned unchanged.
         type_key: Dict key used to read the operator type from each entry.
@@ -107,7 +107,7 @@ def filter_by_tags(
     consistent with :func:`filter_by_op_type`.
 
     Args:
-        info_list: List of operator info dicts (e.g. from ``get_op_catalog()``).
+        info_list: List of operator info dicts with a tags key.
         tags: Tag strings to match.  When ``None`` or empty the full list is
               returned unchanged.
         tags_key: Dict key used to read the tag list from each entry.

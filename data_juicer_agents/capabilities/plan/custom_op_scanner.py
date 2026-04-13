@@ -89,8 +89,8 @@ def scan_custom_operators(
 
     # Use OPSearcher to get rich metadata (type, desc, params, tags)
     try:
-        from data_juicer.tools.op_search import OPSearcher
-        searcher = OPSearcher()
+        from data_juicer_agents.utils.dj_config_bridge import create_op_searcher
+        searcher = create_op_searcher()
         all_ops = searcher.all_ops
     except Exception as exc:
         logger.warning("OPSearcher unavailable, falling back to registry: %s", exc)

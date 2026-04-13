@@ -15,6 +15,7 @@ Field classification lists:
 """
 
 import logging
+import threading
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,131 @@ _builtin_operator_names: Optional[frozenset] = None
 # raises RuntimeError on repeated loads via ``sys.modules`` checks.
 _loaded_custom_paths: set = set()
 
+# Whether the OPRecord monkey-patch has been applied.
+_op_record_patched: bool = False
+
+# Lock protecting _loaded_custom_paths and _op_record_patched against
+# concurrent access from multiple threads.
+_custom_op_lock = threading.Lock()
+
+
+def _patch_op_record() -> None:
+    """Monkey-patch ``OPRecord.__init__`` to handle custom operators.
+
+    Data-Juicer's ``OPRecord`` assumes all operators live inside the
+    ``data_juicer`` package tree.  Custom operators loaded from standalone
+    files break three assumptions:
+
+    1. **Module path depth** — ``op_cls.__module__.split('.')[2]`` assumes
+       at least 3 segments (e.g. ``data_juicer.ops.mapper``).  Custom ops
+       have a flat module name like ``my_custom_mapper``, causing
+       ``IndexError``.
+
+    2. **Source path resolution** — ``get_source_path(op_cls)`` computes a
+       path relative to DJ's ``PROJECT_ROOT``.  Custom ops live outside
+       that tree, raising ``ValueError``.
+
+    3. **Test path lookup** — ``find_test_by_searching_content`` searches
+       DJ's test directory.  Custom ops have no tests there, but the
+       fallback is harmless (returns ``None``).
+
+    This patch wraps the original ``__init__`` to pre-resolve the operator
+    type for flat-module operators and gracefully handle source/test path
+    resolution failures.
+    """
+    global _op_record_patched
+    with _custom_op_lock:
+        if _op_record_patched:
+            return
+
+        try:
+            from data_juicer.tools.op_search import OPRecord
+        except ImportError:
+            return
+
+        import inspect as _inspect
+        from pathlib import Path as _Path
+
+        original_init = OPRecord.__init__
+
+        def _safe_init(self, name, op_cls, op_type=None):
+            # --- Fix 1: resolve op_type for flat-module custom operators ---
+            if op_type is None and op_cls is not None:
+                module_parts = op_cls.__module__.split(".")
+                if len(module_parts) < 3:
+                    op_type = self._search_mro_for_type(op_cls)
+
+            # --- Fix 2 & 3: catch source/test path errors for custom ops ---
+            try:
+                original_init(self, name, op_cls, op_type=op_type)
+            except (ValueError, OSError):
+                # Fallback: manually set fields that original_init would set,
+                # but with safe defaults for custom operators.
+                self.name = name
+                self.type = op_type or "unknown"
+                self.desc = op_cls.__doc__ or ""
+
+                try:
+                    from data_juicer.tools.op_search import analyze_tag_from_cls
+                    self.tags = analyze_tag_from_cls(op_cls, name)
+                except Exception:
+                    self.tags = []
+
+                try:
+                    self.sig = _inspect.signature(op_cls.__init__)
+                except (ValueError, TypeError):
+                    self.sig = None
+
+                try:
+                    from data_juicer.tools.op_search import extract_param_docstring
+                    self.param_desc = extract_param_docstring(
+                        op_cls.__init__.__doc__ or ""
+                    )
+                except Exception:
+                    self.param_desc = ""
+
+                self.param_desc_map = self._parse_param_desc()
+
+                # Use the actual source file path (absolute) for custom ops
+                try:
+                    self.source_path = str(_Path(_inspect.getfile(op_cls)))
+                except (TypeError, OSError):
+                    self.source_path = ""
+
+                self.test_path = None
+
+        OPRecord.__init__ = _safe_init
+        _op_record_patched = True
+        logger.debug("Patched OPRecord.__init__ for custom operator compatibility")
+
+
+def create_op_searcher(
+    *,
+    include_formatter: bool = False,
+    specified_op_list: Optional[List[str]] = None,
+):
+    """Create an ``OPSearcher`` instance with custom-operator safety patches.
+
+    All code in ``data_juicer_agents`` that needs an ``OPSearcher`` should
+    call this factory instead of importing and instantiating ``OPSearcher``
+    directly.  This ensures the ``OPRecord`` monkey-patch is applied
+    exactly once before any searcher is created.
+
+    Args:
+        include_formatter: Whether to include formatter operators.
+        specified_op_list: Optional explicit list of operator names to scan.
+
+    Returns:
+        A fully initialised ``OPSearcher`` instance.
+    """
+    _patch_op_record()
+
+    from data_juicer.tools.op_search import OPSearcher
+
+    if specified_op_list is not None:
+        return OPSearcher(specified_op_list=specified_op_list)
+    return OPSearcher(include_formatter=include_formatter)
+
 
 def get_builtin_operator_names() -> frozenset:
     """Return the set of operator names that ship with Data-Juicer.
@@ -42,13 +168,24 @@ def get_builtin_operator_names() -> frozenset:
     lifetime of the process.  This allows callers to distinguish
     custom operators from built-in ones regardless of how many times
     ``load_custom_operators_into_registry`` is invoked.
+
+    If the DJ registry is empty at call time (e.g. DJ not yet fully
+    initialised), the result is **not** cached so that a subsequent
+    call can capture the real set.
     """
     global _builtin_operator_names
     if _builtin_operator_names is not None:
         return _builtin_operator_names
     try:
         from data_juicer.ops import OPERATORS
-        _builtin_operator_names = frozenset(OPERATORS.modules.keys())
+        names = frozenset(OPERATORS.modules.keys())
+        if not names:
+            logger.warning(
+                "OPERATORS.modules is empty; builtin snapshot not cached "
+                "— will retry on next call"
+            )
+            return frozenset()
+        _builtin_operator_names = names
     except ImportError:
         _builtin_operator_names = frozenset()
     return _builtin_operator_names
@@ -80,32 +217,36 @@ def load_custom_operators_into_registry(paths: List[str]) -> List[str]:
     # Ensure builtin snapshot is captured before loading custom operators
     get_builtin_operator_names()
 
+    # Patch OPRecord to handle custom operators with flat module paths
+    _patch_op_record()
+
     # Normalize and filter out already-loaded paths
     import os
-    new_paths = []
-    for path in paths:
-        normalized = os.path.abspath(path)
-        if normalized not in _loaded_custom_paths:
-            new_paths.append(path)
+    with _custom_op_lock:
+        new_paths = []
+        for path in paths:
+            normalized = os.path.abspath(path)
+            if normalized not in _loaded_custom_paths:
+                new_paths.append(path)
 
-    if not new_paths:
-        return []
+        if not new_paths:
+            return []
 
-    try:
-        from data_juicer.config.config import load_custom_operators
-        load_custom_operators(new_paths)
-        # Mark all new paths as successfully loaded
-        for path in new_paths:
-            _loaded_custom_paths.add(os.path.abspath(path))
-        return []
-    except RuntimeError as exc:
-        # DJ raises RuntimeError for genuine name conflicts (e.g. a custom
-        # operator has the same module name as an already-loaded one but
-        # different source).  Surface this so users know their operator
-        # was NOT registered.
-        return [f"Custom operator loading issue: {exc}"]
-    except Exception as exc:
-        return [f"Failed to load custom operators: {exc}"]
+        try:
+            from data_juicer.config.config import load_custom_operators
+            load_custom_operators(new_paths)
+            # Mark all new paths as successfully loaded
+            for path in new_paths:
+                _loaded_custom_paths.add(os.path.abspath(path))
+            return []
+        except RuntimeError as exc:
+            # DJ raises RuntimeError for genuine name conflicts (e.g. a custom
+            # operator has the same module name as an already-loaded one but
+            # different source).  Surface this so users know their operator
+            # was NOT registered.
+            return [f"Custom operator loading issue: {exc}"]
+        except Exception as exc:
+            return [f"Failed to load custom operators: {exc}"]
 
 # ---------------------------------------------------------------------------
 # Field classification

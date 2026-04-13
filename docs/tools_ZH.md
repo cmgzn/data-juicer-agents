@@ -75,11 +75,10 @@
   - `retrieve/_shared/logic.py`
   - `retrieve/_shared/operator_registry.py`
   - `retrieve/_shared/backend/`（子包）：
-    - `backend.py`：共享检索入口（`retrieve_ops_with_meta`、`retrieve_ops`、`get_op_catalog` 等）
-    - `cache.py`：`RetrievalCacheManager`，管理向量索引、工具信息和目录缓存
-    - `catalog.py`：算子目录构建器（采集 `class_name`、`class_desc`、`class_type`、`class_tags`）
+    - `backend.py`：共享检索入口（`retrieve_ops_with_meta`、`retrieve_ops`、`get_op_searcher` 等）
+    - `cache.py`：`RetrievalCacheManager` – 线程安全的键值缓存，管理 OPSearcher 等检索状态
     - `result_builder.py`：共享检索结果整形辅助和 `trace_step`
-    - `retriever.py`：`RetrieverBackend` 抽象基类及具体后端（`LLMRetriever`、`VectorRetriever`、`BM25Retriever`、`RegexRetriever`）
+    - `retriever.py`：`RetrieverBackend` 抽象基类及具体后端（`LLMRetriever`、`BM25Retriever`、`RegexRetriever`）
   - `retrieve/retrieve_operators/{input.py,logic.py,tool.py}`
   - `retrieve/retrieve_operators_api/{input.py,logic.py,tool.py}`
   - `retrieve/get_operator_info/{input.py,logic.py,tool.py}`

@@ -52,9 +52,12 @@ def validate_process_spec_payload(
     Args:
         process_spec: The process spec to validate.
         custom_operator_paths: Optional paths to custom operator directories
-            or files.  When provided, the operators are dynamically loaded
-            into the DJ registry before validation so that registry-level
-            name and param checks work for custom operators as well.
+            or files.  Used to determine which custom operators are valid
+            for this particular plan (source-file ownership check).
+            Callers must register custom operators into the DJ registry
+            **before** calling this function (via
+            ``register_custom_operators``); this function no longer
+            performs registration itself.
     """
     if isinstance(process_spec, dict):
         process_spec = ProcessSpec.from_dict(process_spec)
@@ -71,18 +74,44 @@ def validate_process_spec_payload(
         if not isinstance(op.params, dict):
             errors.append(f"operators[{idx}].params must be an object")
 
-    # Load custom operators into registry before DJ bridge validation.
-    # When called from the CLI orchestrator, operators are already loaded by
-    # scan_custom_operators (idempotent via _loaded_custom_paths in
-    # dj_config_bridge); when called standalone via
-    # `djx tool run build_process_spec`, this is the first load point.
-    if custom_operator_paths:
-        _paths = [str(p).strip() for p in custom_operator_paths if str(p).strip()]
-        if _paths:
-            from data_juicer_agents.utils.dj_config_bridge import load_custom_operators_into_registry
-            load_warnings = load_custom_operators_into_registry(_paths)
-            if load_warnings:
-                warnings.extend(load_warnings)
+    # Build the set of custom op names that are valid for *this* call's
+    # custom_operator_paths.  In long-lived sessions the global registry
+    # may contain custom ops from earlier calls with different paths;
+    # those must NOT pass validation because ``djx apply`` runs in a
+    # fresh process that only loads the plan's custom_operator_paths.
+    allowed_custom_op_names: set | None = None
+    builtin_names: frozenset = frozenset()  # default to empty set if DJ bridge not available
+    try:
+        from data_juicer_agents.utils.dj_config_bridge import get_builtin_operator_names
+        builtin_names = get_builtin_operator_names()
+        if custom_operator_paths:
+            import inspect
+            import os
+            from data_juicer.ops import OPERATORS
+
+            abs_paths = [
+                os.path.realpath(str(p).strip())
+                for p in custom_operator_paths
+                if str(p).strip()
+            ]
+            allowed_custom_op_names = set()
+            all_custom = set(OPERATORS.modules.keys()) - builtin_names
+            for name in all_custom:
+                cls = OPERATORS.modules[name]
+                try:
+                    source = os.path.realpath(inspect.getfile(cls))
+                except (TypeError, OSError):
+                    continue
+                for base_path in abs_paths:
+                    if source == base_path or source.startswith(base_path + os.sep):
+                        allowed_custom_op_names.add(name)
+                        break
+        else:
+            # No custom paths provided — no custom ops are allowed.
+            allowed_custom_op_names = set()
+    except ImportError:
+        # DJ not available; skip custom op filtering
+        allowed_custom_op_names = None
 
     # DJ bridge validation (two steps)
     try:
@@ -98,7 +127,19 @@ def validate_process_spec_payload(
             if not op.name:
                 continue
             if op.name not in known_op_names:
-                errors.append(f"operators[{idx}]: unknown operator '{op.name}'")
+                errors.append(
+                    f"operators[{idx}]: unknown operator '{op.name}'. "
+                    f"If this is a custom operator, call register_custom_operators first."
+                )
+            elif (
+                allowed_custom_op_names is not None
+                and op.name not in builtin_names
+                and op.name not in allowed_custom_op_names
+            ):
+                errors.append(
+                    f"operators[{idx}]: custom operator '{op.name}' is not "
+                    f"from the provided custom_operator_paths"
+                )
             elif op.name in op_param_map:
                 for param_key in (op.params or {}):
                     if param_key not in op_param_map[op.name]:

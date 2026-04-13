@@ -5,38 +5,27 @@ Architecture
 ------------
 RetrieverBackend (ABC)
     ├── LLMRetriever      – uses DashScope LLM for semantic ranking
-    ├── VectorRetriever   – uses FAISS + DashScope embeddings
     ├── BM25Retriever     – uses Data-Juicer OPSearcher BM25
     └── RegexRetriever    – uses Data-Juicer OPSearcher regex
 
 RetrievalStrategy
-    Holds a registry of backends and implements the "auto" fallback chain
-    (llm → vector → bm25), replacing the large if/elif block that was
+    Holds a registry of three backends and implements the "auto" fallback
+    chain (llm → bm25), replacing the large if/elif block that was
     previously in ``retrieve_ops_with_meta``.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import os
-import os.path as osp
 import re
-import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .cache import (
-    CK_OP_SEARCHER,
-    CK_TOOLS_INFO,
-    CK_VECTOR_STORE,
-    cache_manager,
-)
+from .cache import cache_manager
 from .result_builder import (
     build_retrieval_item,
-    filter_by_op_type,
-    filter_by_tags,
     names_from_items,
     trace_step,
 )
@@ -44,8 +33,6 @@ from .result_builder import (
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
-
-VECTOR_INDEX_CACHE_PATH = osp.join(osp.dirname(__file__), "vector_index_cache")
 
 RETRIEVAL_PROMPT = """You are a professional tool retrieval assistant responsible for filtering the top {limit} most relevant tools from a large tool library based on user requirements. Execute the following steps:
 
@@ -120,15 +107,6 @@ def _extract_key_match(query: str, name: str, desc: str, tags: list[str]) -> lis
     return [token for token in sorted(query_tokens) if token in joined][:5]
 
 
-def _get_content_hash(op_catalog: list) -> str:
-    try:
-        content_str = json.dumps(op_catalog, sort_keys=True, ensure_ascii=False)
-        return hashlib.sha256(content_str.encode("utf-8")).hexdigest()
-    except Exception as e:
-        logging.warning(f"Failed to compute content hash: {e}")
-        return ""
-
-
 # ---------------------------------------------------------------------------
 # Abstract base class
 # ---------------------------------------------------------------------------
@@ -179,14 +157,26 @@ class LLMRetriever(RetrieverBackend):
         op_type: str | None = None,
         tags: list[str] | None = None,
     ) -> list[dict[str, Any]]:
-        from .backend import get_op_catalog  # avoid circular at module level
+        from .backend import get_op_searcher  # avoid circular at module level
 
-        op_catalog = get_op_catalog()
-        op_catalog = filter_by_op_type(op_catalog, op_type)
-        op_catalog = filter_by_tags(op_catalog, tags)
+        searcher = get_op_searcher()
+
+        # Delegate filtering to OPSearcher.search() for consistency with
+        # BM25Retriever and RegexRetriever (single source of truth).
+        filtered_rows = searcher.search(
+            tags=tags or None,
+            op_type=op_type or None,
+        )
+        filtered_ops: list[tuple[str, Any]] = []
+        for row in filtered_rows:
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get("name", "")).strip()
+            if name and name in searcher.all_ops:
+                filtered_ops.append((name, searcher.all_ops[name]))
 
         tool_descriptions = [
-            f"{t['class_name']}: {t['class_desc']}" for t in op_catalog
+            f"{name}: {record.desc}" for name, record in filtered_ops
         ]
         tools_string = "\n".join(tool_descriptions)
 
@@ -212,9 +202,9 @@ class LLMRetriever(RetrieverBackend):
         msg = Msg(name="assistant", role="assistant", content=response.content)
         retrieved_tools = json.loads(msg.get_text_content())
 
-        # Build a fast lookup for class_type
-        type_map = {t["class_name"]: t.get("class_type", "") for t in op_catalog}
-        name_set = {t["class_name"] for t in op_catalog}
+        # Build a fast lookup for type and valid names
+        type_map = {name: str(record.type or "").strip() for name, record in filtered_ops}
+        name_set = {name for name, _ in filtered_ops}
 
         valid_tools: list[dict[str, Any]] = []
         for tool_info in retrieved_tools:
@@ -241,169 +231,6 @@ class LLMRetriever(RetrieverBackend):
 
 
 # ---------------------------------------------------------------------------
-# Vector backend
-# ---------------------------------------------------------------------------
-
-
-class VectorRetriever(RetrieverBackend):
-    """Retrieval via FAISS vector similarity search."""
-
-    @property
-    def name(self) -> str:
-        return "vector"
-
-    def is_available(self) -> bool:
-        return _has_retrieval_api_key()
-
-    # ------------------------------------------------------------------
-    # Index management (delegated to cache_manager)
-    # ------------------------------------------------------------------
-
-    def _get_vector_store(self):
-        return cache_manager.get(CK_VECTOR_STORE)
-
-    def _get_tools_info(self):
-        return cache_manager.get(CK_TOOLS_INFO)
-
-    def _ensure_index(self) -> None:
-        """Load from disk cache or build a fresh index."""
-        if self._get_vector_store() is not None and self._get_tools_info() is not None:
-            return
-        if not self._load_cached_index():
-            logging.info("Building new vector index...")
-            self._build_vector_index()
-
-    def _load_cached_index(self) -> bool:
-        from .backend import get_op_catalog  # avoid circular at module level
-
-        try:
-            op_catalog = get_op_catalog()
-
-            # Fast path: same object identity + hash already stored
-            stored_hash = cache_manager.get_hash(CK_VECTOR_STORE)
-            if stored_hash and cache_manager.get(CK_TOOLS_INFO) is op_catalog:
-                return cache_manager.get(CK_VECTOR_STORE) is not None
-
-            current_hash = _get_content_hash(op_catalog)
-            if not current_hash:
-                return False
-
-            os.makedirs(VECTOR_INDEX_CACHE_PATH, exist_ok=True)
-            index_path = osp.join(VECTOR_INDEX_CACHE_PATH, "faiss_index")
-            metadata_path = osp.join(VECTOR_INDEX_CACHE_PATH, "metadata.json")
-
-            if not all(os.path.exists(p) for p in [index_path, metadata_path]):
-                return False
-
-            with open(metadata_path, "r") as f:
-                metadata = json.load(f)
-
-            if current_hash != metadata.get("content_hash", ""):
-                logging.info("Content hash mismatch, need to rebuild index")
-                return False
-
-            from langchain_community.embeddings import DashScopeEmbeddings
-            from langchain_community.vectorstores import FAISS
-
-            embeddings = DashScopeEmbeddings(
-                dashscope_api_key=os.environ.get("DASHSCOPE_API_KEY"),
-                model="text-embedding-v3",
-            )
-            vector_store = FAISS.load_local(
-                index_path,
-                embeddings,
-                allow_dangerous_deserialization=True,
-            )
-            cache_manager.set(CK_VECTOR_STORE, vector_store, content_hash=current_hash)
-            cache_manager.set(CK_TOOLS_INFO, op_catalog)
-            logging.info("Successfully loaded cached vector index")
-            return True
-
-        except Exception as e:
-            logging.warning(f"Failed to load cached index: {e}")
-            return False
-
-    def _build_vector_index(self) -> None:
-        from .backend import get_op_catalog  # avoid circular at module level
-
-        from langchain_community.embeddings import DashScopeEmbeddings
-        from langchain_community.vectorstores import FAISS
-
-        op_catalog = get_op_catalog()
-        tool_descriptions = [
-            f"{t['class_name']}: {t['class_desc']}" for t in op_catalog
-        ]
-        embeddings = DashScopeEmbeddings(
-            dashscope_api_key=os.environ.get("DASHSCOPE_API_KEY"),
-            model="text-embedding-v3",
-        )
-        metadatas = [{"index": i} for i in range(len(tool_descriptions))]
-        vector_store = FAISS.from_texts(
-            tool_descriptions, embeddings, metadatas=metadatas
-        )
-
-        content_hash = _get_content_hash(op_catalog)
-        cache_manager.set(CK_VECTOR_STORE, vector_store, content_hash=content_hash)
-        cache_manager.set(CK_TOOLS_INFO, op_catalog)
-
-        # Persist to disk
-        try:
-            os.makedirs(VECTOR_INDEX_CACHE_PATH, exist_ok=True)
-            index_path = osp.join(VECTOR_INDEX_CACHE_PATH, "faiss_index")
-            metadata_path = osp.join(VECTOR_INDEX_CACHE_PATH, "metadata.json")
-            vector_store.save_local(index_path)
-            with open(metadata_path, "w") as f:
-                json.dump({"content_hash": content_hash, "created_at": time.time()}, f)
-            logging.info("Successfully built and cached vector index")
-        except Exception as e:
-            logging.error(f"Failed to save cached index: {e}")
-
-    # ------------------------------------------------------------------
-    # Retrieval
-    # ------------------------------------------------------------------
-
-    async def retrieve_items(
-        self,
-        query: str,
-        limit: int = 20,
-        op_type: str | None = None,
-        tags: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
-        self._ensure_index()
-
-        vector_store = self._get_vector_store()
-        tools_info = self._get_tools_info()
-
-        # Over-fetch when filtering to compensate for post-filter drops
-        search_k = limit * 3 if (op_type or tags) else limit
-        retrieved_docs = vector_store.similarity_search(query, k=search_k)
-
-        # Pre-compute the filtered index set for fast lookup
-        filtered_catalog = filter_by_op_type(tools_info, op_type)
-        filtered_catalog = filter_by_tags(filtered_catalog, tags)
-        allowed_names = {t["class_name"] for t in filtered_catalog}
-
-        tool_names: list[str] = []
-        for doc in retrieved_docs:
-            raw_idx = doc.metadata["index"]
-            tool_info = tools_info[raw_idx]
-            if tool_info["class_name"] not in allowed_names:
-                continue
-            tool_names.append(tool_info["class_name"])
-            if len(tool_names) >= limit:
-                break
-
-        # Vector backend returns names only; wrap in minimal item dicts
-        return [
-            build_retrieval_item(
-                tool_name=name,
-                score_source="vector",
-            )
-            for name in tool_names
-        ]
-
-
-# ---------------------------------------------------------------------------
 # BM25 backend
 # ---------------------------------------------------------------------------
 
@@ -419,13 +246,9 @@ class BM25Retriever(RetrieverBackend):
         return True  # No API key required
 
     def _get_searcher(self):
-        searcher = cache_manager.get(CK_OP_SEARCHER)
-        if searcher is not None:
-            return searcher
-        from .catalog import searcher as catalog_searcher
+        from .backend import get_op_searcher  # avoid circular at module level
 
-        cache_manager.set(CK_OP_SEARCHER, catalog_searcher)
-        return catalog_searcher
+        return get_op_searcher()
 
     async def retrieve_items(
         self,
@@ -486,13 +309,9 @@ class RegexRetriever(RetrieverBackend):
         return True  # No API key required
 
     def _get_searcher(self):
-        searcher = cache_manager.get(CK_OP_SEARCHER)
-        if searcher is not None:
-            return searcher
-        from .catalog import searcher as catalog_searcher
+        from .backend import get_op_searcher  # avoid circular at module level
 
-        cache_manager.set(CK_OP_SEARCHER, catalog_searcher)
-        return catalog_searcher
+        return get_op_searcher()
 
     async def retrieve_items(
         self,
@@ -536,16 +355,14 @@ class RegexRetriever(RetrieverBackend):
                 break
         return items
 
-
 # ---------------------------------------------------------------------------
 # Strategy manager
 # ---------------------------------------------------------------------------
 
-
 class RetrievalStrategy:
     """Manages retrieval backend selection and fallback chain.
 
-    For ``mode="auto"``, backends are tried in order: llm → vector → bm25.
+    For ``mode="auto"``, backends are tried in order: llm → bm25.
     Unavailable backends are skipped (recorded in trace); failed backends
     trigger fallback to the next one.
     """
@@ -553,11 +370,10 @@ class RetrievalStrategy:
     def __init__(self) -> None:
         self.backends: dict[str, RetrieverBackend] = {
             "llm": LLMRetriever(),
-            "vector": VectorRetriever(),
             "bm25": BM25Retriever(),
             "regex": RegexRetriever(),
         }
-        self.auto_chain: list[str] = ["llm", "vector", "bm25"]
+        self.auto_chain: list[str] = ["llm", "bm25"]
 
     async def execute(
         self,
@@ -580,6 +396,14 @@ class RetrievalStrategy:
         op_type: str | None,
         tags: list | None = None,
     ) -> dict[str, Any]:
+        # Backward compatibility: map deprecated "vector" mode to "bm25"
+        if mode == "vector":
+            logging.warning(
+                "'vector' retrieval mode is deprecated and mapped to 'bm25'. "
+                "Please use 'bm25' directly."
+            )
+            mode = "bm25"
+
         backend = self.backends.get(mode)
         if not backend:
             raise ValueError(
@@ -619,7 +443,7 @@ class RetrievalStrategy:
             if not backend.is_available():
                 reason = (
                     "missing_api_key"
-                    if backend_name in ("llm", "vector")
+                    if backend_name == "llm"
                     else "unavailable"
                 )
                 trace.append(trace_step(backend_name, "skipped", reason=reason))

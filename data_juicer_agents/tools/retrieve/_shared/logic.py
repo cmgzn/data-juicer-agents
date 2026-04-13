@@ -30,19 +30,18 @@ _OP_TYPES = {
     "formatter",
 }
 _LOCAL_RETRIEVAL_MODES = {"auto", "bm25", "regex"}
-_API_RETRIEVAL_MODES = {"auto", "llm", "vector"}
+_API_RETRIEVAL_MODES = {"auto", "llm"}
 
 
 def _load_op_retrieval_funcs():
     try:
         from .backend import (
-            get_op_catalog,
-            init_op_catalog,
+            get_op_searcher,
             retrieve_ops,
             retrieve_ops_with_meta,
         )
 
-        return get_op_catalog, init_op_catalog, retrieve_ops, retrieve_ops_with_meta
+        return get_op_searcher, retrieve_ops, retrieve_ops_with_meta
     except Exception as exc:
         _logger.debug("load_op_retrieval_funcs failed: %s", exc)
         return None
@@ -109,7 +108,7 @@ def _safe_async_retrieve(
                 )
             ],
         }
-    _, _, _, retrieve_ops_with_meta = funcs
+    _, _, retrieve_ops_with_meta = funcs
 
     def _normalize_names(names: Any) -> List[str]:
         if not isinstance(names, list):
@@ -277,6 +276,38 @@ def _infer_tags_from_dataset(
         return []
 
 
+def _build_info_rows_from_searcher(searcher) -> List[Dict[str, Any]]:
+    """Build info_rows from an OPSearcher, compatible with _build_candidate_row.
+
+    Produces dicts with keys ``class_name``, ``class_desc``, ``class_type``,
+    ``class_tags``, ``arguments`` — compatible with ``_build_candidate_row``.
+    """
+    rows: List[Dict[str, Any]] = []
+    for name, record in sorted(searcher.all_ops.items(), key=lambda item: item[0]):
+        args_lines: List[str] = []
+        if record.sig:
+            for param_name, param in record.sig.parameters.items():
+                if param_name in {"self", "args", "kwargs"}:
+                    continue
+                if param.kind in (
+                    inspect.Parameter.VAR_POSITIONAL,
+                    inspect.Parameter.VAR_KEYWORD,
+                ):
+                    continue
+                desc = str(record.param_desc_map.get(param_name, "")).strip()
+                if desc:
+                    args_lines.append(f"        {param_name} ({param.annotation}): {desc}")
+                else:
+                    args_lines.append(f"        {param_name} ({param.annotation})")
+        rows.append({
+            "class_name": str(name).strip(),
+            "class_desc": str(record.desc or "").strip(),
+            "class_type": str(record.type or "").strip(),
+            "class_tags": list(record.tags or []),
+            "arguments": "\n".join(args_lines),
+        })
+    return rows
+
 def _prepare_retrieval_inputs(
     top_k: int,
     tags: list | None = None,
@@ -304,15 +335,11 @@ def _prepare_retrieval_inputs(
     info_rows: List[Dict[str, Any]] = []
     funcs = _load_op_retrieval_funcs()
     if funcs is not None:
-        get_op_catalog, _init_op_catalog, _retrieve_ops, _retrieve_ops_with_meta = funcs
+        get_op_searcher, _retrieve_ops, _retrieve_ops_with_meta = funcs
         try:
-            info_rows = [
-                item
-                for item in get_op_catalog()
-                if isinstance(item, dict) and str(item.get("class_name", "")).strip()
-            ]
+            info_rows = _build_info_rows_from_searcher(get_op_searcher())
         except Exception as exc:
-            _logger.debug("get_op_catalog failed: %s", exc)
+            _logger.debug("get_op_searcher failed: %s", exc)
             info_rows = []
 
     return {
@@ -563,29 +590,15 @@ def retrieve_operator_candidates_api(
     effective_tags = prepared["effective_tags"] or None
 
     if normalized_mode == "auto":
-        llm_meta = _safe_async_retrieve(
+        # auto mode: try llm only; downstream _finalize_candidate_payload
+        # handles lexical fallback when the result is empty.
+        retrieve_meta = _safe_async_retrieve(
             intent,
             top_k=prepared["top_k"],
             mode="llm",
             op_type=op_type,
             tags=effective_tags,
         )
-        if llm_meta.get("names"):
-            retrieve_meta = llm_meta
-        else:
-            vector_meta = _safe_async_retrieve(
-                intent,
-                top_k=prepared["top_k"],
-                mode="vector",
-                op_type=op_type,
-                tags=effective_tags,
-            )
-            retrieve_meta = {
-                "names": list(vector_meta.get("names", [])),
-                "source": str(vector_meta.get("source", "")).strip(),
-                "trace": list(llm_meta.get("trace", [])) + list(vector_meta.get("trace", [])),
-                "items": list(vector_meta.get("items", [])),
-            }
     else:
         retrieve_meta = _safe_async_retrieve(
             intent,
@@ -661,7 +674,9 @@ def list_operator_catalog(
     requested_tags = [str(item).strip().lower() for item in (tags or []) if str(item).strip()]
 
     try:
-        from .backend.catalog import searcher
+        from .backend import get_op_searcher
+
+        searcher = get_op_searcher()
     except Exception as exc:
         _logger.debug("catalog import failed: %s", exc)
         return {
@@ -738,7 +753,9 @@ def get_operator_info(operator_name: str) -> Dict[str, Any]:
         }
 
     try:
-        from .backend.catalog import searcher
+        from .backend import get_op_searcher
+
+        searcher = get_op_searcher()
     except Exception as exc:
         _logger.debug("catalog import failed: %s", exc)
         return {

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any, Dict, Iterable
 
@@ -20,9 +21,15 @@ from data_juicer_agents.tools.plan import (
     plan_validate,
 )
 
+from data_juicer_agents.tools.dev.register_custom_operators.logic import (
+    register_custom_operators,
+)
+
 from .custom_op_scanner import scan_custom_operators
 from .generator import ProcessOperatorGenerator
 
+
+_plan_logger = logging.getLogger(__name__)
 
 PLANNER_MODEL_NAME = os.environ.get("DJA_PLANNER_MODEL", "qwen3-max-2026-01-23")
 
@@ -96,26 +103,44 @@ class PlanOrchestrator:
             retrieved_candidates=retrieved_candidates,
         )
 
+        # Register custom operators into the DJ registry first, then
+        # scan for candidate metadata.  This two-step approach mirrors
+        # the session workflow where register_custom_operators is called
+        # as a standalone tool before retrieval / build_process_spec.
+        if custom_operator_paths:
+            _paths = [str(p).strip() for p in custom_operator_paths if str(p).strip()]
+            if _paths:
+                reg_result = register_custom_operators(paths=_paths)
+                if not reg_result.get("ok"):
+                    raise ValueError(
+                        f"Failed to register custom operators: "
+                        f"{reg_result.get('message', 'unknown error')}"
+                    )
+                if reg_result.get("warnings"):
+                    for w in reg_result["warnings"]:
+                        _plan_logger.warning("register_custom_operators: %s", w)
+
         # Inject custom operators into retrieval candidates so the LLM
         # planner can select them alongside built-in operators.
         custom_candidates = scan_custom_operators(custom_operator_paths)
         if custom_candidates:
             existing = retrieval.get("candidates", [])
-            # Simplified re-rank: custom operators first, then built-in
-            # candidates.  A future improvement could filter custom operators
-            # by intent relevance instead of unconditionally prioritising them.
-            merged = list(custom_candidates)
-            existing_names = {c["operator_name"] for c in custom_candidates}
-            for candidate in existing:
-                if candidate.get("operator_name") not in existing_names:
-                    merged.append(candidate)
-            for rank, candidate in enumerate(merged, start=1):
-                candidate["rank"] = rank
-            retrieval["candidates"] = merged
-            retrieval["candidate_count"] = len(merged)
-            retrieval["candidate_names"] = [
-                c["operator_name"] for c in merged
+            existing_names = {c.get("operator_name") for c in existing}
+            # Only append custom candidates that are not already present
+            # in the retrieval results — no re-ordering of built-in ones.
+            appended = [
+                c for c in custom_candidates
+                if c["operator_name"] not in existing_names
             ]
+            if appended:
+                merged = existing + appended
+                for rank, candidate in enumerate(merged, start=1):
+                    candidate["rank"] = rank
+                retrieval["candidates"] = merged
+                retrieval["candidate_count"] = len(merged)
+                retrieval["candidate_names"] = [
+                    c["operator_name"] for c in merged
+                ]
 
         # Skip schema probing when using a generated dataset config, since the
         # dataset does not exist yet and cannot be inspected.

@@ -14,8 +14,8 @@ def list_dataset_formatters(
     """List available dataset formatters from Data-Juicer.
 
     Discovers which dataset formatters (dynamic data generators) are registered
-    in the current Data-Juicer installation by comparing OPSearcher results
-    with and without formatter inclusion.
+    in the current Data-Juicer installation by querying OPSearcher with
+    formatter inclusion enabled.
 
     Args:
         include_ray: Whether to include Ray-specific formatters.
@@ -24,9 +24,9 @@ def list_dataset_formatters(
         Dict with 'formatters' list and metadata.
     """
     try:
-        from data_juicer.tools.op_search import OPSearcher
+        from data_juicer_agents.utils.dj_config_bridge import create_op_searcher
 
-        searcher = OPSearcher(include_formatter=True)
+        searcher = create_op_searcher(include_formatter=True)
         formatter_entries = searcher.search(op_type="formatter")
 
         # Optionally filter out Ray-specific formatters
