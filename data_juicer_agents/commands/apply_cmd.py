@@ -14,9 +14,21 @@ from data_juicer_agents.commands.output_control import emit, emit_json, enabled
 def _format_dataset_source(recipe: dict) -> str:
     """Build a human-readable dataset source summary from the recipe block.
 
-    Priority follows Data-Juicer convention:
-      generated_dataset_config > dataset (multi-source config) > dataset_path
+    Exactly one dataset source must be present in the plan.
     """
+    source_count = sum([
+        bool(recipe.get("generated_dataset_config")),
+        bool(recipe.get("dataset")),
+        bool(recipe.get("dataset_path")),
+    ])
+
+    if source_count > 1:
+        raise ValueError(
+            "Plan contains multiple dataset sources. "
+            "Only one of dataset_path, dataset, or generated_dataset_config "
+            "is allowed. Please regenerate the plan."
+        )
+
     generated_cfg = recipe.get("generated_dataset_config")
     if isinstance(generated_cfg, dict):
         formatter_type = str(generated_cfg.get("type", "unknown")).strip()
@@ -48,7 +60,12 @@ def _confirm(plan_data: dict) -> bool:
     print(f"About to execute plan: {str(plan_data.get('plan_id', '')).strip()}")
     print(f"Modality: {str(plan_data.get('modality', '')).strip()}")
     recipe = plan_data.get("recipe", {})
-    print(f"Dataset: {_format_dataset_source(recipe)}")
+    try:
+        dataset_summary = _format_dataset_source(recipe)
+    except ValueError as exc:
+        print(f"Error: {exc}")
+        return False
+    print(f"Dataset: {dataset_summary}")
     print(f"Export: {str(recipe.get('export_path', '')).strip()}")
     answer = input("Proceed? [y/N]: ").strip().lower()
     return answer in {"y", "yes"}

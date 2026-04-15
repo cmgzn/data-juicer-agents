@@ -11,8 +11,8 @@ class InspectDatasetInput(BaseModel):
     dataset_path: str = Field(
         default="",
         description=(
-            "Dataset file path to inspect. Will be converted to the standard "
-            "dataset config format internally. Ignored when 'dataset' is provided."
+            "Dataset file path to inspect. Mutually exclusive with 'dataset': "
+            "provide exactly one of dataset_path or dataset, not both."
         ),
     )
     dataset: Optional[Dict[str, Any]] = Field(
@@ -20,7 +20,8 @@ class InspectDatasetInput(BaseModel):
         description=(
             "Structured multi-source dataset config in the standard format: "
             '{"configs": [{"type": "local", "path": "..."}]}. '
-            "Takes priority over dataset_path when both are provided."
+            "Mutually exclusive with 'dataset_path': "
+            "provide exactly one of dataset or dataset_path, not both."
         ),
     )
     sample_size: int = Field(default=20, ge=1, description="Number of samples to inspect.")

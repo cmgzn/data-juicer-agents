@@ -283,9 +283,13 @@ def _prepare_retrieval_inputs(
     dataset_path: str | None = None,
     dataset: dict | None = None,
 ) -> Dict[str, Any]:
+    if dataset and dataset_path:
+        raise ValueError(
+            "Only one dataset source can be specified at a time: "
+            "pass either dataset_path or dataset, not both."
+        )
     requested_tags = [str(tag).strip() for tag in (tags or []) if str(tag).strip()]
     inferred_tags: List[str] = []
-    # Priority: dataset (multi-source config) > dataset_path (plain path)
     if dataset:
         inferred_tags = _infer_tags_from_dataset(dataset_path="", dataset=dataset)
     elif dataset_path:

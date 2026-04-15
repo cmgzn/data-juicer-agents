@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import List, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -43,8 +43,17 @@ class RetrieveOperatorsAPIInput(BaseModel):
     dataset_path: str = Field(
         default="",
         description=(
-            "Optional dataset file path. When provided, the dataset modality is probed "
-            "via inspect_dataset_schema and the inferred tags are merged with any explicit tags."
+            "Optional dataset file path for modality probing. When provided, the dataset "
+            "modality is inferred and merged with any explicit tags. "
+            "Mutually exclusive with 'dataset': provide at most one of dataset_path or dataset."
+        ),
+    )
+    dataset: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Optional structured dataset config for modality probing: "
+            '{"configs": [{"type": "local", "path": "..."}]}. '
+            "Mutually exclusive with 'dataset_path': provide at most one of dataset or dataset_path."
         ),
     )
 
