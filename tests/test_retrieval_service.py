@@ -213,29 +213,19 @@ def test_prepare_retrieval_inputs_uses_dataset_config_when_dataset_path_missing(
     assert prepared["effective_tags"] == ["cpu", "image"]
 
 
-def test_prepare_retrieval_inputs_prefers_dataset_config_over_dataset_path(monkeypatch):
-    # Priority: dataset (multi-source config) > dataset_path (plain path)
+def test_prepare_retrieval_inputs_rejects_multiple_sources(monkeypatch):
+    # Only one of dataset_path or dataset is allowed at a time.
+    import pytest
     from data_juicer_agents.tools.retrieve._shared import logic as svc
 
-    captured: dict = {}
-
-    def _fake_infer(dataset_path: str, dataset: dict | None = None):
-        captured["dataset_path"] = dataset_path
-        captured["dataset"] = dataset
-        return ["text"]
-
     monkeypatch.setattr(svc, "_load_op_retrieval_funcs", lambda: None)
-    monkeypatch.setattr(svc, "_infer_tags_from_dataset", _fake_infer)
 
-    prepared = svc._prepare_retrieval_inputs(
-        top_k=5,
-        dataset_path="/tmp/primary.jsonl",
-        dataset={"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]},
-    )
-
-    assert captured["dataset_path"] == ""
-    assert captured["dataset"] == {"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]}
-    assert prepared["inferred_tags"] == ["text"]
+    with pytest.raises(ValueError, match="Only one dataset source"):
+        svc._prepare_retrieval_inputs(
+            top_k=5,
+            dataset_path="/tmp/primary.jsonl",
+            dataset={"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]},
+        )
 
 
 def test_retrieve_operator_candidates_local_auto_uses_regex_for_regex_like_query():
