@@ -64,6 +64,27 @@ def test_retrieve_operator_candidates_llm():
 # Fallback tests (must use mocks to simulate failures)
 # ---------------------------------------------------------------------------
 
+def _make_fake_searcher(rows):
+    """Build a minimal fake OPSearcher from catalog-style rows."""
+    import inspect as _inspect
+    from types import SimpleNamespace
+
+    all_ops = {}
+    for row in rows:
+        name = row["class_name"]
+        record = SimpleNamespace(
+            name=name,
+            type=row.get("class_type", ""),
+            desc=row.get("class_desc", ""),
+            tags=row.get("class_tags", []),
+            sig=None,
+            param_desc_map={},
+            source_path="",
+            test_path="",
+        )
+        all_ops[name] = record
+    return SimpleNamespace(all_ops=all_ops)
+
 def test_retrieval_service_falls_back_to_lexical(monkeypatch):
     """When all backends fail, lexical fallback kicks in."""
     from data_juicer_agents.tools.retrieve._shared import logic as svc
@@ -80,11 +101,12 @@ def test_retrieval_service_falls_back_to_lexical(monkeypatch):
             "arguments": "min_len (int): min length",
         },
     ]
+    fake_searcher = _make_fake_searcher(rows)
 
     monkeypatch.setattr(
         svc,
         "_load_op_retrieval_funcs",
-        lambda: (lambda: rows, lambda: True, None, None),
+        lambda: (lambda: fake_searcher, None, None),
     )
     monkeypatch.setattr(
         svc,
@@ -139,11 +161,12 @@ def test_retrieval_service_normalization_empty_updates_lexical_source(monkeypatc
             "arguments": "min_len (int): min length",
         },
     ]
+    fake_searcher = _make_fake_searcher(rows)
 
     monkeypatch.setattr(
         svc,
         "_load_op_retrieval_funcs",
-        lambda: (lambda: rows, lambda: True, None, None),
+        lambda: (lambda: fake_searcher, None, None),
     )
     monkeypatch.setattr(
         svc,
@@ -263,5 +286,5 @@ def test_retrieve_operator_candidates_api_without_api_key_returns_empty(monkeypa
     assert payload["candidate_names"] == []
     assert payload["retrieval_source"] == ""
     assert payload["retrieval_trace"][0]["backend"] == "llm"
-    assert payload["retrieval_trace"][-1]["backend"] == "vector"
+    assert payload["retrieval_trace"][-1]["backend"] == "llm"
     assert payload["notes"] == ["No operator candidates were found from API retrieval."]

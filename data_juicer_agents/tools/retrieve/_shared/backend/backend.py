@@ -6,14 +6,12 @@ moved to dedicated modules:
 
 * ``cache.py``         – thread-safe cache manager (replaces global variables)
 * ``result_builder.py``– shared helpers for building result/trace dicts
-* ``retriever.py``     – RetrieverBackend ABC, four concrete backends,
-                          and RetrievalStrategy (replaces the large
-                          if/elif block in retrieve_ops_with_meta)
+* ``retriever.py``     – RetrieverBackend ABC, concrete backends,
+                          and RetrievalStrategy
 
 Public surface kept for backward-compatibility with existing callers and tests
 that monkeypatch individual retrieval functions:
   retrieve_ops_lm_items, retrieve_ops_lm,
-  retrieve_ops_vector,
   retrieve_ops_bm25_items, retrieve_ops_bm25,
   retrieve_ops_regex_items, retrieve_ops_regex,
   retrieve_ops_with_meta, retrieve_ops
@@ -21,78 +19,75 @@ that monkeypatch individual retrieval functions:
 
 from __future__ import annotations
 
-import importlib
 import logging
 from typing import Any, List, Optional
 
-from .cache import CK_OP_CATALOG, CK_OP_SEARCHER, cache_manager
+from .cache import cache_manager
 from .retriever import _strategy
 
-# ---------------------------------------------------------------------------
-# op_catalog lifecycle
-# ---------------------------------------------------------------------------
+# Internal cache key for the OPSearcher instance (managed here, not in cache.py)
+_CK_OP_SEARCHER = "op_searcher"
 
-def init_op_catalog() -> bool:
-    """Initialize op_catalog at agent startup."""
-    try:
-        logging.info("Initializing op_catalog for agent lifecycle...")
-        from .catalog import op_catalog
-
-        cache_manager.set(CK_OP_CATALOG, op_catalog)
-        logging.info(
-            "Successfully initialized op_catalog with %d operators",
-            len(op_catalog),
-        )
-        return True
-    except Exception as e:
-        logging.error(f"Failed to initialize op_catalog: {e}")
-        return False
+# ---------------------------------------------------------------------------
+# OPSearcher lifecycle
+# ---------------------------------------------------------------------------
 
 def refresh_op_catalog() -> bool:
-    """Refresh op_catalog during agent runtime (for manual updates)."""
+    """Refresh the OPSearcher during agent runtime.
+
+    Re-instantiates ``OPSearcher`` from the current
+    ``OPERATORS.modules`` registry without reloading DJ modules.
+    """
     try:
-        logging.info("Refreshing op_catalog...")
+        logging.info("Refreshing op_searcher...")
 
         # Clear all caches to force rebuild
         cache_manager.invalidate_all()
 
-        # Reload modules and read op_catalog directly from the reloaded
-        # module object.  Using get_op_catalog() here would go through
-        # init_op_catalog() → from .catalog import op_catalog which may
-        # return stale data from the Python import cache.
-        from . import catalog as catalog_mod
-        from data_juicer import ops
+        # Build a fresh OPSearcher via the bridge factory (applies patches)
+        from data_juicer_agents.utils.dj_config_bridge import create_op_searcher
 
-        importlib.reload(ops)
-        importlib.reload(catalog_mod)
-        op_catalog = catalog_mod.op_catalog
-
-        cache_manager.set(CK_OP_CATALOG, op_catalog)
+        new_searcher = create_op_searcher(include_formatter=False)
+        cache_manager.set(_CK_OP_SEARCHER, new_searcher)
         logging.info(
-            "Successfully refreshed op_catalog with %d operators",
-            len(op_catalog),
+            "Successfully refreshed op_searcher with %d operators",
+            len(new_searcher.all_ops),
         )
         return True
     except Exception as e:
         import traceback
 
         traceback.print_exc()
-        logging.error(f"Failed to refresh op_catalog: {e}")
+        logging.error(f"Failed to refresh op_searcher: {e}")
         return False
 
-def get_op_catalog() -> list:
-    """Return current op_catalog (lifecycle-aware)."""
-    cached = cache_manager.get(CK_OP_CATALOG)
-    if cached is None:
-        logging.warning("op_catalog not initialized, initializing now...")
-        if not init_op_catalog():
-            logging.warning("Falling back to direct import of op_catalog")
-            from .catalog import op_catalog
+def get_op_searcher():
+    """Return the current OPSearcher instance (lifecycle-aware).
 
-            cache_manager.set(CK_OP_CATALOG, op_catalog)
-            return op_catalog
-        cached = cache_manager.get(CK_OP_CATALOG)
-    return cached
+    After ``refresh_op_catalog()`` the cached searcher reflects the
+    latest ``OPERATORS.modules`` state.  On first call (before any
+    refresh) creates a default instance from the current registry.
+
+    Uses double-checked locking to avoid creating multiple OPSearcher
+    instances under concurrent access.
+    """
+    cached = cache_manager.get(_CK_OP_SEARCHER)
+    if cached is not None:
+        return cached
+
+    # Double-checked locking: use cache_manager's internal lock to
+    # ensure only one thread creates the default searcher.
+    with cache_manager._lock:
+        cached = cache_manager.get(_CK_OP_SEARCHER)
+        if cached is not None:
+            return cached
+
+        # Lazy-init: create default searcher via the bridge factory (applies patches)
+        from data_juicer_agents.utils.dj_config_bridge import create_op_searcher
+
+        default = create_op_searcher(include_formatter=False)
+        cache_manager.set(_CK_OP_SEARCHER, default)
+        return default
 
 # ---------------------------------------------------------------------------
 # Thin wrappers – kept so existing tests can monkeypatch these names
@@ -105,14 +100,6 @@ async def retrieve_ops_lm_items(
 ) -> List[dict]:
     """Thin wrapper: delegates to LLMRetriever.retrieve_items."""
     return await _strategy.backends["llm"].retrieve_items(user_query, limit=limit, op_type=op_type)
-
-async def retrieve_ops_vector_items(
-    user_query: str,
-    limit: int = 20,
-    op_type: Optional[str] = None,
-) -> List[dict]:
-    """Thin wrapper: vector retrieval – returns list of tool names."""
-    return await _strategy.backends["vector"].retrieve_items(user_query, limit=limit, op_type=op_type)
 
 def retrieve_ops_bm25_items(
     user_query: str,
@@ -182,7 +169,7 @@ async def retrieve_ops_with_meta(
     Args:
         user_query: User query string.
         limit: Maximum number of tools to retrieve.
-        mode: Retrieval mode – "llm", "vector", "bm25", "regex", or "auto".
+        mode: Retrieval mode – "llm", "bm25", "regex", or "auto".
         op_type: Optional operator type filter (e.g. "filter", "mapper").
         tags: List of tags to match.
     """
@@ -199,7 +186,7 @@ async def retrieve_ops(
     Args:
         user_query: User query string.
         limit: Maximum number of tools to retrieve.
-        mode: Retrieval mode – "llm", "vector", "bm25", "regex", or "auto".
+        mode: Retrieval mode – "llm", "bm25", "regex", or "auto".
         op_type: Optional operator type filter.
     """
     meta = await retrieve_ops_with_meta(
