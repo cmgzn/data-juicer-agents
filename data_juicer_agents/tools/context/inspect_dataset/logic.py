@@ -198,16 +198,36 @@ def inspect_dataset_schema(
     """Inspect a small sample of a dataset and infer keys/modality for planning.
 
     Accepts a DatasetSource object that encapsulates the dataset path and config.
-    When dataset_source is None, it is treated as an empty dataset source.
+    When dataset_source is None, returns a friendly error dict instead of raising.
     """
-    from data_juicer_agents.core.tool import DatasetSource
-    
     if dataset_source is None:
-        dataset_source = DatasetSource(path="")
+        return {
+            "ok": False,
+            "error_type": "missing_dataset_source",
+            "error": "No dataset source provided. Pass a DatasetSource with path or config.",
+            "message": "No dataset source provided.",
+        }
+
     legacy = dataset_source.to_legacy_args()
     dataset_path = legacy["dataset_path"]
     dataset = legacy["dataset"]
-    
+    generated_dataset_config = legacy["generated_dataset_config"]
+
+    if generated_dataset_config:
+        return {
+            "ok": False,
+            "error_type": "unsupported_input_source",
+            "error": (
+                "inspect_dataset does not support generated dataset sources. "
+                "Generated datasets are created dynamically at runtime and "
+                "cannot be inspected ahead of time."
+            ),
+            "message": (
+                "Cannot inspect a generated dataset source. "
+                "Schema probing is only supported for path or config sources."
+            ),
+        }
+
     resolved_config = _resolve_dataset_config(dataset_path, dataset)
     inspectable_path = _pick_inspectable_path(resolved_config)
 

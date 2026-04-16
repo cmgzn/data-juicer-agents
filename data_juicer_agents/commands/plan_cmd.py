@@ -111,9 +111,10 @@ def execute_plan(args) -> Dict[str, Any]:
             generated_dataset_config=generated_dataset_config,
         )
     except ValueError as exc:
+        error_type = "conflicting_arguments" if active_sources > 1 else "missing_required"
         return _error_result(
             str(exc),
-            error_type="conflicting_arguments",
+            error_type=error_type,
             stage="input_validation",
         )
 

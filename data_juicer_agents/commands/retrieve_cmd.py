@@ -47,9 +47,23 @@ def run_retrieve(args) -> int:
         return 2
 
     tags: List[str] = list(getattr(args, "tags", None) or [])
-    raw_dataset_path: str | None = getattr(args, "dataset", None)
-    dataset_source = DatasetSource(path=raw_dataset_path) if raw_dataset_path else None
     op_type: str | None = getattr(args, "op_type", None)
+
+    raw_dataset_path = str(getattr(args, "dataset", "") or "").strip()
+    raw_dataset_config = str(getattr(args, "dataset_config", "") or "").strip() or None
+    raw_generated_config = str(getattr(args, "generated_dataset_config", "") or "").strip() or None
+
+    dataset_source: DatasetSource | None = None
+    if raw_dataset_path or raw_dataset_config or raw_generated_config:
+        try:
+            dataset_source = DatasetSource.from_legacy(
+                dataset_path=raw_dataset_path,
+                dataset=raw_dataset_config,
+                generated_dataset_config=raw_generated_config,
+            )
+        except ValueError as exc:
+            print(f"Invalid dataset source: {exc}")
+            return 2
 
     try:
         payload = retrieve_operator_candidates(

@@ -171,10 +171,29 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Retrieval backend mode",
     )
-    retrieve.add_argument(
+    retrieve_dataset_group = retrieve.add_mutually_exclusive_group()
+    retrieve_dataset_group.add_argument(
         "--dataset",
         default=None,
         help="Optional dataset path for schema/modality probing",
+    )
+    retrieve_dataset_group.add_argument(
+        "--dataset-config",
+        default=None,
+        help=(
+            "Optional JSON string for structured multi-source dataset config "
+            "for modality probing. "
+            'Example: \'{"configs": [{"type": "local", "path": "/data/a.jsonl"}]}\''
+        ),
+    )
+    retrieve_dataset_group.add_argument(
+        "--generated-dataset-config",
+        default=None,
+        help=(
+            "Optional JSON string for dynamically generated dataset config "
+            "for modality probing. "
+            'Example: \'{"type": "EmptyFormatter", "length": 1000}\''
+        ),
     )
     retrieve.add_argument(
         "--type",
