@@ -3,11 +3,9 @@
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 from pydantic import BaseModel, Field
-
-from data_juicer_agents.core.tool import DatasetSource
 
 
 class RetrieveOperatorsAPIInput(BaseModel):
@@ -42,16 +40,5 @@ class RetrieveOperatorsAPIInput(BaseModel):
             "Only operators whose tag set contains ALL of the specified tags are returned."
         ),
     )
-    dataset_source: Optional[DatasetSource] = Field(
-        default=None,
-        description=(
-            "Optional dataset source for modality probing. When provided, the dataset "
-            "modality is inferred and merged with any explicit tags. "
-            "Provide exactly one of: path (local file shortcut), config (structured load config), "
-            "or generated (dynamic formatter config)."
-        ),
-    )
-
-
 class GenericOutput(BaseModel):
     ok: bool = True

@@ -31,7 +31,6 @@ def _retrieve_operators(_ctx: ToolContext, args: RetrieveOperatorsInput) -> Tool
             mode=(args.mode.strip() or "auto"),
             op_type=(args.op_type.strip() or None),
             tags=parsed_tags,
-            dataset_source=args.dataset_source,
         )
     except Exception as exc:
         return ToolResult.failure(

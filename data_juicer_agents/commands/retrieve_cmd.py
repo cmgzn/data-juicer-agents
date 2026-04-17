@@ -6,7 +6,6 @@ from __future__ import annotations
 import json
 from typing import List
 
-from data_juicer_agents.core.tool import DatasetSource
 from data_juicer_agents.tools.retrieve import retrieve_operator_candidates
 
 
@@ -16,10 +15,6 @@ def _print_human_readable(payload: dict) -> None:
     print(f"Mode: {payload.get('mode', '')}")
     print(f"Source: {payload.get('retrieval_source', '')}")
     print(f"Candidates: {payload.get('candidate_count', 0)}")
-
-    inferred_tags = payload.get("inferred_tags")
-    if inferred_tags:
-        print(f"Dataset modality tags: {inferred_tags}")
 
     candidates = payload.get("candidates", [])
     if not candidates:
@@ -49,22 +44,6 @@ def run_retrieve(args) -> int:
     tags: List[str] = list(getattr(args, "tags", None) or [])
     op_type: str | None = getattr(args, "op_type", None)
 
-    raw_dataset_path = str(getattr(args, "dataset", "") or "").strip()
-    raw_dataset_config = str(getattr(args, "dataset_config", "") or "").strip() or None
-    raw_generated_config = str(getattr(args, "generated_dataset_config", "") or "").strip() or None
-
-    dataset_source: DatasetSource | None = None
-    if raw_dataset_path or raw_dataset_config or raw_generated_config:
-        try:
-            dataset_source = DatasetSource.from_legacy(
-                dataset_path=raw_dataset_path,
-                dataset=raw_dataset_config,
-                generated_dataset_config=raw_generated_config,
-            )
-        except ValueError as exc:
-            print(f"Invalid dataset source: {exc}")
-            return 2
-
     try:
         payload = retrieve_operator_candidates(
             intent=args.intent,
@@ -72,7 +51,6 @@ def run_retrieve(args) -> int:
             mode=args.mode,
             op_type=op_type,
             tags=tags if tags else None,
-            dataset_source=dataset_source,
         )
     except Exception as exc:
         print(f"Retrieve failed: {exc}")

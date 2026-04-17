@@ -28,7 +28,7 @@ Examples:
 ```bash
 djx plan "deduplicate text" --dataset ./data.jsonl --export ./out.jsonl --quiet
 djx plan "deduplicate text" --dataset ./data.jsonl --export ./out.jsonl --verbose
-djx --debug retrieve "deduplicate text" --dataset ./data.jsonl
+djx --debug retrieve "deduplicate text" --tags text
 ```
 
 ## `djx plan`
@@ -131,13 +131,12 @@ Notes:
 ## `djx retrieve`
 
 ```bash
-djx retrieve "<intent>" [--dataset <path>] [--type <op_type>] [--tags <tag> ...] [--top-k 10] [--mode auto|llm|vector|bm25|regex] [--json]
+djx retrieve "<intent>" [--type <op_type>] [--tags <tag> ...] [--top-k 10] [--mode auto|llm|vector|bm25|regex] [--json]
 ```
 
 Key options:
-- `--dataset`: optional dataset path; when provided, the CLI probes the dataset through the retrieval layer's dataset inspection logic to infer modality (text / image / multimodal / audio / video) and converts it into operator tags for filtering
 - `--type`: filter by operator type (e.g. `filter`, `mapper`, `deduplicator`)
-- `--tags`: filter by operator tags (e.g. `text`, `image`, `multimodal`); can be combined with `--dataset` (tags are merged)
+- `--tags`: filter by operator tags (e.g. `text`, `image`, `multimodal`)
 - `--top-k`: maximum number of candidates (default: 10)
 - `--mode`: retrieval backend selection
 - `--json`: output the full payload as JSON instead of human-readable summary
@@ -145,15 +144,8 @@ Key options:
 Returns:
 - ranked operator candidates
 - retrieval source, trace, and notes
-- when `--dataset` is provided and modality is detected, the payload includes `inferred_tags`
 - `auto` uses `llm -> vector -> bm25 -> lexical` (without API key: `bm25 -> lexical`)
 - `regex` uses Python regex pattern matching against operator name, description, and parameter fields (standalone mode, not part of auto fallback)
-
-Dataset-aware filtering:
-- when `--dataset` is provided, the CLI runs dataset inspection logic inside the retrieval layer to detect the dataset modality
-- the detected modality is mapped to operator tags (e.g. `image` → `["image"]`, `multimodal` → `["multimodal"]`)
-- these tags are passed to the retrieval backends, which filter the operator catalog so that only operators tagged with matching modalities are returned
-- if modality detection fails, retrieval proceeds without tag filtering
 
 ## `djx dev`
 

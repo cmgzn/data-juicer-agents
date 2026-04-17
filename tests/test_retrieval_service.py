@@ -191,37 +191,14 @@ def test_retrieval_service_normalization_empty_updates_lexical_source(monkeypatc
     assert "document_deduplicator" in names
 
 
-def test_prepare_retrieval_inputs_uses_dataset_config_when_dataset_path_missing(monkeypatch):
-    from data_juicer_agents.core.tool import DatasetSource
+def test_prepare_retrieval_inputs_uses_explicit_tags_only(monkeypatch):
     from data_juicer_agents.tools.retrieve._shared import logic as svc
 
-    captured: dict = {}
-
-    def _fake_infer(dataset_source: DatasetSource):
-        captured["dataset_source"] = dataset_source
-        return ["image"]
-
     monkeypatch.setattr(svc, "_load_op_retrieval_funcs", lambda: None)
-    monkeypatch.setattr(svc, "_infer_tags_from_dataset", _fake_infer)
 
-    dataset = {"configs": [{"type": "local", "path": "/tmp/sample.jsonl"}]}
-    prepared = svc._prepare_retrieval_inputs(top_k=5, tags=["cpu"], dataset_source=DatasetSource(config=dataset))
+    prepared = svc._prepare_retrieval_inputs(top_k=5, tags=["cpu"])
 
-    assert captured["dataset_source"].config == dataset
-    assert prepared["inferred_tags"] == ["image"]
-    assert prepared["effective_tags"] == ["cpu", "image"]
-
-
-def test_prepare_retrieval_inputs_rejects_multiple_sources(monkeypatch):
-    # Only one of dataset_path or dataset is allowed at a time.
-    import pytest
-    from data_juicer_agents.core.tool import DatasetSource
-
-    with pytest.raises(ValueError, match="Only one"):
-        DatasetSource(
-            path="/tmp/primary.jsonl",
-            config={"configs": [{"type": "local", "path": "/tmp/secondary.jsonl"}]},
-        )
+    assert prepared["requested_tags"] == ["cpu"]
 
 
 def test_retrieve_operator_candidates_local_auto_uses_regex_for_regex_like_query():
