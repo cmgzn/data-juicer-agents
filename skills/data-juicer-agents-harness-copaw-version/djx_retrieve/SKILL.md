@@ -3,7 +3,7 @@ name: djx_retrieve
 description: >-
   Data-Juicer operator retrieval reference: retrieve_operators (local), retrieve_operators_api (API), get_operator_info, list_operator_catalog.
   Trigger keywords: retrieve_operators, retrieve_operators_api, search operators, find operator,
-  which operator, intent, retrieval, bm25, regex, LLM mode, LLM mode, operator info, operator catalog.
+  which operator, intent, retrieval, bm25, regex, LLM mode, operator info, operator catalog.
   Use when searching for suitable operators, unsure which operator to use, or retrieve errors occur.
   Related skills: data-juicer (main flow), djx_auth (authentication), djx_local_model (local mode).
 allowed-tools: Bash, Read

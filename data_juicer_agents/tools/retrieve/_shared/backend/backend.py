@@ -78,11 +78,7 @@ def get_op_catalog() -> list:
     if cached is None:
         logging.warning("op_catalog not initialized, initializing now...")
         if not init_op_catalog():
-            logging.warning("Falling back to rebuilding op_catalog from searcher")
-            searcher = get_op_searcher()
-            op_catalog = build_op_catalog(searcher)
-            cache_manager.set(CK_OP_CATALOG, op_catalog)
-            return op_catalog
+            return []
         cached = cache_manager.get(CK_OP_CATALOG)
     return cached
 

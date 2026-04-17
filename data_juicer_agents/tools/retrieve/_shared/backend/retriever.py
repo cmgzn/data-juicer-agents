@@ -241,9 +241,7 @@ class BM25Retriever(RetrieverBackend):
             return searcher
         from .backend import get_op_searcher
 
-        searcher = get_op_searcher()
-        cache_manager.set(CK_OP_SEARCHER, searcher)
-        return searcher
+        return get_op_searcher()
 
     async def retrieve_items(
         self,
@@ -309,9 +307,7 @@ class RegexRetriever(RetrieverBackend):
             return searcher
         from .backend import get_op_searcher
 
-        searcher = get_op_searcher()
-        cache_manager.set(CK_OP_SEARCHER, searcher)
-        return searcher
+        return get_op_searcher()
 
     async def retrieve_items(
         self,
