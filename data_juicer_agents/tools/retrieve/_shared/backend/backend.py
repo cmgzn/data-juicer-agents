@@ -78,8 +78,10 @@ def get_op_catalog() -> list:
     if cached is None:
         logging.warning("op_catalog not initialized, initializing now...")
         if not init_op_catalog():
-            return []
+            raise RuntimeError("op_catalog initialization failed")
         cached = cache_manager.get(CK_OP_CATALOG)
+        if cached is None:
+            raise RuntimeError("op_catalog cache missing after successful initialization")
     return cached
 
 
