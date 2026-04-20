@@ -45,13 +45,6 @@ class QARetrieveOperatorsAPIInput(BaseModel):
             "'multimodal', 'audio', 'video', 'cpu', 'gpu', or 'api'."
         ),
     )
-    dataset_path: str = Field(
-        default="",
-        description=(
-            "Optional dataset path used to infer modality tags and improve "
-            "operator retrieval."
-        ),
-    )
 
 
 def _qa_retrieve_operators_api(ctx: ToolContext, args: QARetrieveOperatorsAPIInput):
@@ -63,7 +56,6 @@ def _qa_retrieve_operators_api(ctx: ToolContext, args: QARetrieveOperatorsAPIInp
             "mode": "llm",
             "op_type": args.op_type,
             "tags": list(args.tags),
-            "dataset_path": args.dataset_path,
         },
     )
 
