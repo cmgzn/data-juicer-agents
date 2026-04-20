@@ -25,7 +25,7 @@ When generating a response, please adhere to the following guidelines:
 
 2. **Use Specialized Operator Tools for functional queries**:
    - For questions regarding specific data processing requirements or "how to process [specific data type]", use the dedicated operator tools:
-     - **`retrieve_operators_api(intent, top_k=10, op_type="", tags=[], dataset_path="")`**: Use API-backed operator retrieval to find candidate operators from a natural-language intent. In this QA runtime it always uses llm mode internally.
+     - **`retrieve_operators_api(intent, top_k=10, op_type="", tags=[])`**: Use API-backed operator retrieval to find candidate operators from a natural-language intent. In this QA runtime it always uses llm mode internally.
      - **`get_operator_info(operator_name)`**: Use this to retrieve the canonical operator schema, parameters, source/test paths, and detail payload for a specific operator.
    - **Strategy**: If a user describes a data task, retrieve candidates first, then inspect the selected canonical operator with `get_operator_info`; if they name a specific operator, inspect it immediately.
 
