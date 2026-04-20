@@ -11,8 +11,9 @@ class ListDatasetLoadStrategiesInput(BaseModel):
 
     Discovers which dataset loading strategies are truly implemented in the
     current Data-Juicer installation. Use this BEFORE build_dataset_spec when
-    you need to configure non-trivial dataset sources (e.g., remote S3, mixed
-    weights). For simple single local files, use dataset_path directly.
+    you need to configure non-trivial dataset sources via dataset_source.config
+    (e.g., remote S3, mixed weights). For simple single local files, use
+    dataset_source.path directly.
     """
 
     executor_type: str = Field(

@@ -81,9 +81,9 @@ def list_dataset_formatters(
             "include_ray": include_ray,
             "usage_hint": (
                 "Use the formatter 'name' as the 'type' value in "
-                "generated_dataset_config when calling build_dataset_spec. "
-                "Example: generated_dataset_config={\"type\": \"EmptyFormatter\", "
-                "\"length\": 1000, \"feature_keys\": [\"text\"]}"
+                "dataset_source.generated when calling build_dataset_spec. "
+                "Example: dataset_source={\"generated\": {\"type\": \"EmptyFormatter\", "
+                "\"length\": 1000, \"feature_keys\": [\"text\"]}}"
             ),
         }
 
